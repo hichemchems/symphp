@@ -1,0 +1,157 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord Administrateur{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1 class="mb-4">Tableau de bord Administrateur</h1>
+
+    <!-- Global Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Revenus Aujourd'hui</h5>
+                    <h3 class="card-text">{{ todayRevenueHt|number_format(2, ',', ' ') }} € HT</h3>
+                    <small>{{ todayRevenueTtc|number_format(2, ',', ' ') }} € TTC</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Revenus Cette Semaine</h5>
+                    <h3 class="card-text">{{ weekRevenueHt|number_format(2, ',', ' ') }} € HT</h3>
+                    <small>{{ weekRevenueTtc|number_format(2, ',', ' ') }} € TTC</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Revenus Ce Mois</h5>
+                    <h3 class="card-text">{{ monthRevenueHt|number_format(2, ',', ' ') }} € HT</h3>
+                    <small>{{ monthRevenueTtc|number_format(2, ',', ' ') }} € TTC</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Employee Form -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Créer un Nouvel Employé</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(employeeForm, {'attr': {'class': 'row g-3'}}) }}
+                        <div class="col-md-6">
+                            {{ form_row(employeeForm.firstName, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(employeeForm.lastName, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(employeeForm.email, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(employeeForm.commissionPercentage, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(employeeForm.plainPassword, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">Créer l'Employé</button>
+                        </div>
+                    {{ form_end(employeeForm) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employees Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Employés ({{ employees|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if employees is empty %}
+                        <p class="text-muted">Aucun employé enregistré.</p>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Email</th>
+                                        <th>Commission</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for employee in employees %}
+                                        <tr>
+                                            <td>{{ employee.firstName }} {{ employee.lastName }}</td>
+                                            <td>{{ employee.email }}</td>
+                                            <td>{{ employee.commissionPercentage }}%</td>
+                                            <td>
+                                                {% if employee.isVerified %}
+                                                    <span class="badge bg-success">Vérifié</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Non vérifié</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Appointments -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Rendez-vous Récents</h5>
+                </div>
+                <div class="card-body">
+                    {% if recentAppointments is empty %}
+                        <p class="text-muted">Aucun rendez-vous récent.</p>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Heure</th>
+                                        <th>Client</th>
+                                        <th>Employé</th>
+                                        <th>Service</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appointment in recentAppointments %}
+                                        <tr>
+                                            <td>{{ appointment.date|date('d/m/Y H:i') }}</td>
+                                            <td>{{ appointment.clientName }}</td>
+                                            <td>{{ appointment.employee.firstName }} {{ appointment.employee.lastName }}</td>
+                                            <td>{{ appointment.package.name }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
