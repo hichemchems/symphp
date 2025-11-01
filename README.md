@@ -148,4 +148,4 @@ EasyGestionBarber/
 ---
 
 **Développé avec ❤️ pour la gestion efficace des salons de coiffure**
-# symphp
+# EasyGestionBarber
