@@ -2,8 +2,6 @@ doctrine:
     dbal:
         types:
             enum: string
-        mapping_types:
-            enum: string
         connections:
             default:
                 mapping_types:
