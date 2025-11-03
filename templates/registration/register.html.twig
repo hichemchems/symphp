@@ -176,7 +176,7 @@
     <div class="registration-container">
         <div class="registration-header">
             <h1>🪒 Easy Gestion Barber</h1>
-            <p>Créez votre compte administrateur</p>
+            <p>Création de compte administrateur uniquement</p>
         </div>
 
         {% for flash_error in app.flashes('verify_email_error') %}
@@ -252,7 +252,7 @@
                 {% endif %}
             </div>
 
-            <button type="submit" class="btn-register">Créer mon compte administrateur</button>
+            <button type="submit" class="btn-register">Créer un compte administrateur</button>
         {{ form_end(registrationForm) }}
     </div>
 </div>

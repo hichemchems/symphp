@@ -37,7 +37,7 @@ class RegistrationController extends AbstractController
             // encode the plain password
             $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
 
-            // Set admin role and mark as verified for first admin
+            // Set admin role and mark as verified for registration (only admins can register)
             $user->setRoles(['ROLE_ADMIN']);
             $user->setIsVerified(true);
 
