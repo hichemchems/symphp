@@ -55,6 +55,9 @@ final class AdminDashboardController extends AbstractController
             // Set verified to true for admin-created employees
             $employee->setIsVerified(true);
 
+            // Set the creator (current admin)
+            $employee->setCreatedBy($this->getUser());
+
             $entityManager->persist($employee);
             $entityManager->flush();
 
@@ -88,8 +91,8 @@ final class AdminDashboardController extends AbstractController
             $this->addFlash('success', 'Charge ajoutée avec succès !');
             return $this->redirectToRoute('app_admin_dashboard');
         }
-        // Get all employees
-        $employees = $employeeRepository->findAll();
+        // Get only employees created by this admin
+        $employees = $employeeRepository->findBy(['createdBy' => $this->getUser()]);
 
         // Calculate global statistics for today
         $today = new \DateTime('today');
