@@ -9,10 +9,10 @@ doctrine:
         # either here or in the DATABASE_URL env var (see .env file)
         #server_version: '16'
 
-        profiling_collect_backtrace: '%kernel.debug%'
-        use_savepoints: true
         connections:
             default:
+                profiling_collect_backtrace: '%kernel.debug%'
+                use_savepoints: true
                 mapping_types:
                     enum: string
     orm:
