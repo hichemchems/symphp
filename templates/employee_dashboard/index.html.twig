@@ -25,7 +25,7 @@
     <!-- Statistics Cards -->
     <div class="row mb-4 justify-content-center align-items-center" style="justify-content: space-evenly;">
         <div class="col-md-4 d-flex justify-content-center">
-            <div class="card bg-primary text-white stats-card">
+            <div class="card bg-primary text-white stats-card" style="width: 30%; height: 34vh;">
                 <div class="card-body text-center">
                     <h5 class="card-title">Revenus du Mois</h5>
                     <h3 class="card-text">{{ totalMonthlyRevenue|number_format(2, ',', ' ') }} €</h3>
@@ -34,7 +34,7 @@
             </div>
         </div>
         <div class="col-md-4 d-flex justify-content-center">
-            <div class="card bg-success text-white stats-card">
+            <div class="card bg-success text-white stats-card" style="width: 30%; height: 34vh;">
                 <div class="card-body text-center">
                     <h5 class="card-title">Commission du Mois</h5>
                     <h3 class="card-text">{{ totalCommission|number_format(2, ',', ' ') }} €</h3>
@@ -43,7 +43,7 @@
             </div>
         </div>
         <div class="col-md-4 d-flex justify-content-center">
-            <div class="card bg-info text-white stats-card">
+            <div class="card bg-info text-white stats-card" style="width: 30%; height: 34vh;">
                 <div class="card-body text-center">
                     <h5 class="card-title">Chiffre d'Affaires HT</h5>
                     <h3 class="card-text" id="totalCaHt">{{ totalCaHt|number_format(2, ',', ' ') }} €</h3>
