@@ -16,6 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
+use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 
 class EmployeeCrudController extends AbstractCrudController
 {
@@ -45,6 +46,7 @@ class EmployeeCrudController extends AbstractCrudController
                 ->allowMultipleChoices()
                 ->setRequired(true),
             BooleanField::new('isVerified', 'Email vérifié'),
+            TextField::new('createdBy.email', 'Créé par')->onlyOnIndex(),
         ];
     }
 
@@ -66,6 +68,12 @@ class EmployeeCrudController extends AbstractCrudController
             ->add(Crud::PAGE_EDIT, Action::SAVE_AND_ADD_ANOTHER);
     }
 
+    public function configureFilters(Filters $filters): Filters
+    {
+        return $filters
+            ->add('createdBy');
+    }
+
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void
     {
         /** @var Employee $entityInstance */
@@ -75,6 +83,9 @@ class EmployeeCrudController extends AbstractCrudController
             $hashedPassword = $this->passwordHasher->hashPassword($entityInstance, $defaultPassword);
             $entityInstance->setPassword($hashedPassword);
         }
+
+        // Set the creator (current admin)
+        $entityInstance->setCreatedBy($this->getUser());
 
         parent::persistEntity($entityManager, $entityInstance);
     }

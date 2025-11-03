@@ -22,6 +22,14 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
+        // Create sample admin user
+        $admin = new \App\Entity\User();
+        $admin->setEmail('admin@example.com');
+        $hashedPassword = $this->passwordHasher->hashPassword($admin, 'admin123');
+        $admin->setPassword($hashedPassword);
+        $admin->setRoles(['ROLE_ADMIN']);
+        $manager->persist($admin);
+
         // Create sample employees
         $employees = [];
         $employeeData = [
@@ -39,9 +47,8 @@ class AppFixtures extends Fixture
             $employee->setPassword($hashedPassword);
             $employee->setCommissionPercentage($data[4]);
             $employee->setIsVerified(true);
-            if ($data[2] === 'john.doe@example.com') {
-                $employee->setRoles(['ROLE_ADMIN']);
-            }
+            $employee->setRoles(['ROLE_EMPLOYEE']);
+            $employee->setCreatedBy($admin); // Set admin as creator
             $manager->persist($employee);
             $employees[] = $employee;
         }

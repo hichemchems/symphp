@@ -40,9 +40,9 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'json')]
     private array $roles = [];
 
-    #[ORM\ManyToOne(targetEntity: Employee::class)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: true)]
-    private ?Employee $createdBy = null;
+    private ?User $createdBy = null;
 
     #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Appointment::class)]
     private Collection $appointments;
@@ -220,12 +220,12 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getCreatedBy(): ?Employee
+    public function getCreatedBy(): ?User
     {
         return $this->createdBy;
     }
 
-    public function setCreatedBy(?Employee $createdBy): static
+    public function setCreatedBy(?User $createdBy): static
     {
         $this->createdBy = $createdBy;
 
