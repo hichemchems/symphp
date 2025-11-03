@@ -1,0 +1,6 @@
+doctrine:
+    dbal:
+        types:
+            enum: string
+        mapping_types:
+            enum: string

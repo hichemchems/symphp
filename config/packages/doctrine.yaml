@@ -1,3 +1,6 @@
+imports:
+    - { resource: doctrine_custom.yaml }
+
 doctrine:
     dbal:
         url: '%env(resolve:DATABASE_URL)%'
@@ -8,8 +11,6 @@ doctrine:
 
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true
-        types:
-            enum: string
     orm:
         auto_generate_proxy_classes: true
         enable_lazy_ghost_objects: true
