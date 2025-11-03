@@ -1,6 +1,6 @@
 body {
     background-color: black !important;
-    color: rgb(10, 10, 8);
+    color: rgb(253, 253, 253) !important;
 }
 
 @media (max-width: 768px) {
