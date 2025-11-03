@@ -4,3 +4,7 @@ doctrine:
             enum: string
         mapping_types:
             enum: string
+        connections:
+            default:
+                mapping_types:
+                    enum: string
