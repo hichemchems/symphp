@@ -1,0 +1,4 @@
+doctrine:
+    dbal:
+        types:
+            enum: Doctrine\DBAL\Types\StringType

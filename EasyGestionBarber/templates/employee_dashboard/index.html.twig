@@ -1,0 +1,413 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de Bord Employé{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+.selected-package {
+    background-color: #e3f2fd !important;
+    border-color: #5e6a74ff !important;
+    width: 100% !important;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4 text-white">Tableau de Bord Employé</h1>
+            <p class="text-white">Bienvenue, {{ app.user.firstName }} {{ app.user.lastName }}</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4 justify-content-center align-items-center" style="justify-content: space-evenly;">
+        <div class="col-md-4 d-flex justify-content-center" style="width: 30%; height: 34vh;">
+            <div class="card bg-primary text-white stats-card" >
+                <div class="card-body text-center">
+                    <h5 class="card-title">Revenus du Mois</h5>
+                    <h3 class="card-text">{{ totalMonthlyRevenue|number_format(2, ',', ' ') }} €</h3>
+                    <small>Revenus TTC ce mois-ci</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center" style="width: 30%; height: 34vh;">
+            <div class="card bg-success text-white stats-card" >
+                <div class="card-body text-center">
+                    <h5 class="card-title">Commission du Mois</h5>
+                    <h3 class="card-text">{{ totalCommission|number_format(2, ',', ' ') }} €</h3>
+                    <small>Commission à {{ commissionPercentage }}%</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center" style="width: 30%; height: 34vh;">
+            <div class="card bg-info text-white stats-card" >
+                <div class="card-body text-center">
+                    <h5 class="card-title">Chiffre d'Affaires HT</h5>
+                    <h3 class="card-text" id="totalCaHt">{{ totalCaHt|number_format(2, ',', ' ') }} €</h3>
+                    <small>Accumulé aujourd'hui</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Packages Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Sélection de Forfaits</h5>
+                    <button class="btn btn-primary" id="showPackagesBtn" type="button">
+                        Voir les Forfaits
+                    </button>
+                </div>
+                <div class="card-body" id="packagesContainer" style="display: none;">
+                    <div class="row">
+                        {% for packageData in packagesWithCommission %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card h-100 border-primary package-card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">{{ packageData.package.name }}</h6>
+                                        <p class="card-text text-muted small">{{ packageData.package.description }}</p>
+                                        <div class="mb-2">
+                                            <strong>Prix TTC: {{ packageData.package.price|number_format(2, ',', ' ') }} €</strong>
+                                        </div>
+                                        <div class="mb-2">
+                                            <small class="text-muted">Prix HT: {{ packageData.priceHt|number_format(2, ',', ' ') }} €</small>
+                                        </div>
+                                        <div class="mb-3">
+                                            <span class="badge bg-success">Commission: {{ packageData.commission|number_format(2, ',', ' ') }} €</span>
+                                        </div>
+                                        <button class="btn btn-outline-primary btn-sm w-100 package-btn" data-package-id="{{ packageData.package.id }}" data-price-ht="{{ packageData.priceHt }}" onclick="selectPackage({{ packageData.package.id }}, '{{ packageData.package.name }}', {{ packageData.package.price }}, {{ packageData.commission }}, {{ packageData.priceHt }})">
+                                            Sélectionner ce Forfait
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3" id="packageActions" style="display: none;">
+                        <button type="button" class="btn btn-secondary me-2" onclick="closePackages()">Fermer</button>
+                        <button type="button" class="btn btn-primary" onclick="confirmPackageSelection()">Confirmer la Sélection</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Appointments -->
+    <div class="row mb-4">
+        <div class="col-12 appointments-section">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h5 class="mb-0">Rendez-vous d'Aujourd'hui et Demain</h5>
+                </div>
+                <div class="card-body">
+                    {% if todayAppointments is empty %}
+                        <p class="text-muted text-center">Aucun rendez-vous prévu pour aujourd'hui.</p>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Date & Heure</th>
+                                        <th class="text-center">Client</th>
+                                        <th class="text-center">Service</th>
+                                        <th class="text-center">Contact</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appointment in todayAppointments %}
+                                        <tr>
+                                            <td class="text-center">{{ appointment.date|date('d/m/Y H:i') }}</td>
+                                            <td class="text-center">{{ appointment.clientName }}</td>
+                                            <td class="text-center">{{ appointment.package.name }}</td>
+                                            <td class="text-center">
+                                                <small>{{ appointment.clientEmail }}</small><br>
+                                                <small>{{ appointment.clientPhone }}</small>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Buttons -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <button class="btn btn-info btn-lg w-100" data-bs-toggle="modal" data-bs-target="#weeklyStatsModal">
+                <i class="fas fa-calendar-week"></i> Statistiques Hebdomadaires
+            </button>
+        </div>
+        <div class="col-md-6" style="margin-top: 4%;">
+            <button class="btn btn-success btn-lg w-100" data-bs-toggle="modal" data-bs-target="#monthlyStatsModal">
+                <i class="fas fa-calendar-alt"></i> Statistiques Mensuelles
+            </button>
+        </div>
+    </div>
+
+    <!-- Recent Revenues -->
+    <div class="row">
+        <div class="col-12 revenue-section">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h5 class="mb-0">Revenus Récents</h5>
+                </div>
+                <div class="card-body">
+                    {% if recentRevenues is empty %}
+                        <p class="text-muted text-center">Aucun revenu enregistré récemment.</p>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Date</th>
+                                        <th class="text-center">Service</th>
+                                        <th class="text-center">Montant HT</th>
+                                        <th class="text-center">Montant TTC</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for revenue in recentRevenues %}
+                                        <tr>
+                                            <td class="text-center">{{ revenue.date|date('d/m/Y') }}</td>
+                                            <td class="text-center">{{ revenue.package.name }}</td>
+                                            <td class="text-center">{{ revenue.amountHt|number_format(2, ',', ' ') }} €</td>
+                                            <td class="text-center"><strong>{{ revenue.amountTtc|number_format(2, ',', ' ') }} €</strong></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Weekly Stats Modal -->
+<div class="modal fade" id="weeklyStatsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Statistiques Hebdomadaires</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% if weeklyStats is empty %}
+                    <p>Aucune statistique hebdomadaire disponible.</p>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Semaine</th>
+                                    <th>Revenus HT</th>
+                                    <th>Revenus TTC</th>
+                                    <th>Clients</th>
+                                    <th>Commission</th>
+                                    <th>Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in weeklyStats %}
+                                    <tr>
+                                        <td>Semaine {{ stat.date|date('W') }} ({{ stat.date|date('d/m/Y') }})</td>
+                                        <td>{{ stat.revenueHt }} €</td>
+                                        <td>{{ stat.revenueTtc }} €</td>
+                                        <td>{{ stat.clientsCount }}</td>
+                                        <td>{{ stat.commission }} €</td>
+                                        <td class="{% if stat.profit >= 0 %}text-success{% else %}text-danger{% endif %}">{{ stat.profit }} €</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Stats Modal -->
+<div class="modal fade" id="monthlyStatsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Statistiques Mensuelles</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% if monthlyStats is empty %}
+                    <p>Aucune statistique mensuelle disponible.</p>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Mois</th>
+                                    <th>Revenus HT</th>
+                                    <th>Revenus TTC</th>
+                                    <th>Clients</th>
+                                    <th>Commission</th>
+                                    <th>Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for stat in monthlyStats %}
+                                    <tr>
+                                        <td>{{ stat.date|date('M Y') }}</td>
+                                        <td>{{ stat.revenueHt }} €</td>
+                                        <td>{{ stat.revenueTtc }} €</td>
+                                        <td>{{ stat.clientsCount }}</td>
+                                        <td>{{ stat.commission }} €</td>
+                                        <td class="{% if stat.profit >= 0 %}text-success{% else %}text-danger{% endif %}">{{ stat.profit }} €</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedPackage = null;
+let totalCaHt = 0;
+
+function updateCaDisplay() {
+    document.getElementById('totalCaHt').textContent = totalCaHt.toFixed(2).replace('.', ',') + ' €';
+}
+
+document.getElementById('showPackagesBtn').addEventListener('click', function() {
+    const container = document.getElementById('packagesContainer');
+    const actions = document.getElementById('packageActions');
+
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        this.textContent = 'Masquer les Forfaits';
+        actions.style.display = 'none'; // Hide actions initially
+    } else {
+        container.style.display = 'none';
+        this.textContent = 'Voir les Forfaits';
+        actions.style.display = 'none';
+    }
+});
+
+function selectPackage(id, name, price, commission, priceHt) {
+    selectedPackage = { id, name, price, commission, priceHt };
+
+    // Update button states
+    document.querySelectorAll('.package-btn').forEach(btn => {
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-outline-primary');
+        btn.textContent = 'Sélectionner ce Forfait';
+    });
+
+    // Highlight selected button
+    const selectedBtn = document.querySelector(`[data-package-id="${id}"]`);
+    selectedBtn.classList.remove('btn-outline-primary');
+    selectedBtn.classList.add('btn-primary');
+    selectedBtn.textContent = 'Forfait Sélectionné';
+
+    // Show actions
+    document.getElementById('packageActions').style.display = 'block';
+}
+
+function closePackages() {
+    document.getElementById('packagesContainer').style.display = 'none';
+    document.getElementById('showPackagesBtn').textContent = 'Voir les Forfaits';
+    document.getElementById('packageActions').style.display = 'none';
+
+    // Reset selection
+    selectedPackage = null;
+    document.querySelectorAll('.package-btn').forEach(btn => {
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-outline-primary');
+        btn.textContent = 'Sélectionner ce Forfait';
+    });
+}
+
+function confirmPackageSelection() {
+    if (selectedPackage) {
+        // Send AJAX request to save the selection
+        fetch('/employee/select-package', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'package_id=' + selectedPackage.id
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Add to CA HT
+                totalCaHt += selectedPackage.priceHt;
+                updateCaDisplay();
+
+                // Update monthly stats
+                updateMonthlyStats();
+
+                // Show success message
+                alert(`Forfait "${selectedPackage.name}" ajouté avec succès!\nPrix HT ajouté au CA: ${selectedPackage.priceHt.toFixed(2)} €\nCommission: ${selectedPackage.commission.toFixed(2)} €`);
+
+                // Hide packages and show button again
+                closePackages();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Une erreur est survenue lors de la sauvegarde.');
+        });
+    }
+}
+
+function updateMonthlyStats() {
+    // Fetch updated stats from server
+    fetch('/employee/package-stats')
+    .then(response => response.json())
+    .then(data => {
+        // Update the displayed values
+        document.getElementById('totalCaHt').textContent = data.total_ca_ht.toFixed(2).replace('.', ',') + ' €';
+
+        // Update monthly revenue and commission cards
+        const monthlyRevenueCard = document.querySelector('.card.bg-primary .card-text');
+        const monthlyCommissionCard = document.querySelector('.card.bg-success .card-text');
+
+        if (monthlyRevenueCard) {
+            monthlyRevenueCard.textContent = data.total_monthly_revenue.toFixed(2).replace('.', ',') + ' €';
+        }
+        if (monthlyCommissionCard) {
+            monthlyCommissionCard.textContent = data.total_commission.toFixed(2).replace('.', ',') + ' €';
+        }
+    })
+    .catch(error => {
+        console.error('Error updating stats:', error);
+    });
+}
+
+// Initialize CA HT on page load with server data
+document.addEventListener('DOMContentLoaded', function() {
+    // Set initial CA HT from server
+    const initialCaHt = {{ totalCaHt }};
+    totalCaHt = initialCaHt;
+
+    updateMonthlyStats();
+});
+</script>
+{% endblock %}

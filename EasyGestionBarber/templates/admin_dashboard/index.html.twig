@@ -1,0 +1,1018 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Tableau de bord Administrateur - Easy Gestion Barber{% endblock %}
+
+{% block stylesheets %}
+<style>
+.dashboard-header {
+    background: linear-gradient(135deg, #2c3e50, #3498db);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 10px;
+}
+
+.dashboard-header h1 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.dashboard-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    tesxt-align: center;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.action-btn {
+    background: white;
+    border: 2px solid #ecf0f1;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    text-decoration: none;
+    color: #2c3e50;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.action-btn:hover {
+    border-color: #3498db;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
+    transform: translateY(-2px);
+}
+
+.action-btn i {
+    font-size: 2rem;
+    color: #3498db;
+}
+
+.action-btn h5 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Mobile Menu Burger */
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: #2c3e50;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.mobile-menu-toggle i {
+    transition: transform 0.3s ease;
+}
+
+.mobile-menu-toggle.active i {
+    transform: rotate(90deg);
+}
+
+@media (max-width: 768px) {
+    .action-buttons {
+        position: fixed;
+        top: 0;
+        left: -100%;
+        width: 280px;
+        height: 100vh;
+        background: white;
+        flex-direction: column;
+        padding: 4rem 1rem 1rem;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+        transition: left 0.3s ease;
+        z-index: 1000;
+        overflow-y: auto;
+    }
+
+    .action-buttons.active {
+        left: 0;
+    }
+
+    .action-btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+        padding: 1rem;
+    }
+
+    .action-btn h5 {
+        font-size: 1rem;
+    }
+
+    .mobile-menu-toggle {
+        display: block;
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 1001;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .mobile-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+    }
+
+    .mobile-overlay.active {
+        display: block;
+    }
+}
+
+.employee-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .employee-cards {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+}
+
+.employee-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    border-left: 4px solid #3498db;
+    transition: transform 0.2s ease;
+}
+
+.employee-card:hover {
+    transform: translateY(-2px);
+}
+
+.employee-card h6 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.employee-stat {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.employee-stat-label {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.employee-stat-value {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.employee-status {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.employee-status.active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.employee-status.inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .stats-overview {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+}
+
+.stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card.success { border-left: 4px solid #27ae60; }
+.stat-card.info { border-left: 4px solid #3498db; }
+.stat-card.primary { border-left: 4px solid #9b59b6; }
+.stat-card.warning { border-left: 4px solid #f39c12; }
+
+.stat-card h5 {
+    color: #2c3e50;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.stat-card .value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+}
+
+.stat-card .subtitle {
+    color: #7f8c8d;
+    font-size: 0.8rem;
+}
+
+.modal-content {
+    border-radius: 10px;
+    border: none;
+}
+
+.modal-header {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border-radius: 10px 10px 0 0;
+    border-bottom: none;
+}
+
+.modal-title {
+    font-weight: 600;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-control {
+    border-radius: 5px;
+    border: 2px solid #ecf0f1;
+}
+
+.form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    border: none;
+    border-radius: 5px;
+    padding: 0.5rem 1.5rem;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #2980b9, #2573a7);
+}
+
+.table {
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.table thead th {
+    background: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: #2c3e50;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="dashboard-header">
+    <div class="container">
+        <h1 class="text-white">🪒 Easy Gestion Barber</h1>
+        <p class="text-white">Tableau de bord administrateur</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons" id="actionButtons">
+        <a href="#" class="action-btn" data-bs-toggle="modal" data-bs-target="#createEmployeeModal">
+            <i class="fas fa-user-plus"></i>
+            <h5>Créer un Employé</h5>
+        </a>
+        <a href="#" class="action-btn" data-bs-toggle="modal" data-bs-target="#employeesModal">
+            <i class="fas fa-users"></i>
+            <h5>Gérer les Employés</h5>
+        </a>
+        <a href="#" class="action-btn" data-bs-toggle="modal" data-bs-target="#appointmentsModal">
+            <i class="fas fa-calendar-check"></i>
+            <h5>Rendez-vous</h5>
+        </a>
+        <a href="#" class="action-btn" data-bs-toggle="modal" data-bs-target="#packagesModal">
+            <i class="fas fa-cut"></i>
+            <h5>Gérer les Forfaits</h5>
+        </a>
+        <a href="#" class="action-btn" data-bs-toggle="modal" data-bs-target="#statsModal">
+            <i class="fas fa-chart-bar"></i>
+            <h5>Statistiques</h5>
+        </a>
+        <a href="#" class="action-btn" data-bs-toggle="modal" data-bs-target="#chargesModal">
+            <i class="fas fa-euro-sign"></i>
+            <h5>Gérer les Charges</h5>
+        </a>
+    </div>
+
+    <!-- Employee Cards -->
+    {% if employees %}
+    <div class="employee-cards">
+        {% for employee in employees %}
+        <div class="employee-card">
+            <h6>{{ employee.firstName }} {{ employee.lastName }}</h6>
+            <div class="employee-stat">
+                <span class="employee-stat-label">CA HT</span>
+                <span class="employee-stat-value">{{ employeeStats[employee.id].revenueHt|default(0)|number_format(2, ',', ' ') }} €</span>
+            </div>
+            <div class="employee-stat">
+                <span class="employee-stat-label">Commission</span>
+                <span class="employee-stat-value">{{ employeeStats[employee.id].commission|default(0)|number_format(2, ',', ' ') }} €</span>
+            </div>
+            <div class="employee-stat">
+                <span class="employee-stat-label">Clients</span>
+                <span class="employee-stat-value">{{ employeeStats[employee.id].clients|default(0) }}</span>
+            </div>
+            <div class="employee-status {{ employee.isVerified ? 'active' : 'inactive' }}">
+                {{ employee.isVerified ? 'Actif' : 'En attente' }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Global Statistics -->
+    <div class="stats-overview">
+        <div class="stat-card success">
+            <h5>Revenus Aujourd'hui</h5>
+            <div class="value">{{ todayRevenueHt|number_format(2, ',', ' ') }} €</div>
+            <div class="subtitle">{{ todayRevenueTtc|number_format(2, ',', ' ') }} € TTC</div>
+        </div>
+        <div class="stat-card info">
+            <h5>Cette Semaine</h5>
+            <div class="value">{{ weekRevenueHt|number_format(2, ',', ' ') }} €</div>
+            <div class="subtitle">{{ weekRevenueTtc|number_format(2, ',', ' ') }} € TTC</div>
+        </div>
+        <div class="stat-card primary">
+            <h5>Ce Mois</h5>
+            <div class="value">{{ monthRevenueHt|number_format(2, ',', ' ') }} €</div>
+            <div class="subtitle">{{ monthRevenueTtc|number_format(2, ',', ' ') }} € TTC</div>
+        </div>
+        <div class="stat-card warning">
+            <h5>Cette Année</h5>
+            <div class="value">{{ yearRevenueHt|number_format(2, ',', ' ') }} €</div>
+            <div class="subtitle">{{ yearRevenueTtc|number_format(2, ',', ' ') }} € TTC</div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Create Employee Modal -->
+    <div class="modal fade" id="createEmployeeModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Créer un Nouvel Employé</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {{ form_start(employeeForm) }}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form_label(employeeForm.firstName) }}
+                                    {{ form_widget(employeeForm.firstName, {'attr': {'class': 'form-control'}}) }}
+                                    {% if form_errors(employeeForm.firstName) %}
+                                        <div class="text-danger small">{{ form_errors(employeeForm.firstName) }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form_label(employeeForm.lastName) }}
+                                    {{ form_widget(employeeForm.lastName, {'attr': {'class': 'form-control'}}) }}
+                                    {% if form_errors(employeeForm.lastName) %}
+                                        <div class="text-danger small">{{ form_errors(employeeForm.lastName) }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(employeeForm.email) }}
+                            {{ form_widget(employeeForm.email, {'attr': {'class': 'form-control'}}) }}
+                            {% if form_errors(employeeForm.email) %}
+                                <div class="text-danger small">{{ form_errors(employeeForm.email) }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(employeeForm.emailConfirm, 'Confirmer l\'email') }}
+                            {{ form_widget(employeeForm.emailConfirm, {'attr': {'class': 'form-control'}}) }}
+                            {% if form_errors(employeeForm.emailConfirm) %}
+                                <div class="text-danger small">{{ form_errors(employeeForm.emailConfirm) }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(employeeForm.plainPassword) }}
+                            {{ form_widget(employeeForm.plainPassword, {'attr': {'class': 'form-control'}}) }}
+                            {% if form_errors(employeeForm.plainPassword) %}
+                                <div class="text-danger small">{{ form_errors(employeeForm.plainPassword) }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(employeeForm.plainPasswordConfirm, 'Confirmer le mot de passe') }}
+                            {{ form_widget(employeeForm.plainPasswordConfirm, {'attr': {'class': 'form-control'}}) }}
+                            {% if form_errors(employeeForm.plainPasswordConfirm) %}
+                                <div class="text-danger small">{{ form_errors(employeeForm.plainPasswordConfirm) }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(employeeForm.commissionPercentage) }}
+                            {{ form_widget(employeeForm.commissionPercentage, {'attr': {'class': 'form-control'}}) }}
+                            {% if form_errors(employeeForm.commissionPercentage) %}
+                                <div class="text-danger small">{{ form_errors(employeeForm.commissionPercentage) }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-user-plus me-2"></i>Créer l'Employé
+                            </button>
+                        </div>
+                    {{ form_end(employeeForm) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employees Management Modal -->
+    <div class="modal fade" id="employeesModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-users me-2"></i>Gérer les Employés</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if employees is empty %}
+                        <p class="text-muted text-center py-4">Aucun employé enregistré.</p>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Email</th>
+                                        <th>Commission</th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for employee in employees %}
+                                        <tr>
+                                            <td>{{ employee.firstName }} {{ employee.lastName }}</td>
+                                            <td>{{ employee.email }}</td>
+                                            <td>{{ employee.commissionPercentage }}%</td>
+                                            <td>
+                                                {% if employee.isVerified %}
+                                                    <span class="badge bg-success">Vérifié</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">Non vérifié</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1" title="Modifier">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments Modal -->
+    <div class="modal fade" id="appointmentsModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-calendar-check me-2"></i>Rendez-vous</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {% if recentAppointments is empty %}
+                        <p class="text-muted text-center py-4">Aucun rendez-vous récent.</p>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Heure</th>
+                                        <th>Prix TTC</th>
+                                        <th>Employé</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for appointment in recentAppointments %}
+                                        <tr>
+                                            <td>{{ appointment.date|date('d/m/Y H:i') }}</td>
+                                            <td>{{ (appointment.package.price * 1.20)|number_format(2, ',', ' ') }} €</td>
+                                            <td>{{ appointment.employee.firstName }} {{ appointment.employee.lastName }}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1" title="Modifier">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Packages Modal -->
+    <div class="modal fade" id="packagesModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-cut me-2"></i>Gérer les Forfaits</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createPackageModal">
+                            <i class="fas fa-plus me-2"></i>Créer un Forfait
+                        </button>
+                    </div>
+                    {% if packages is empty %}
+                        <p class="text-muted text-center py-4">Aucun forfait créé.</p>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Prix HT</th>
+                                        <th>Prix TTC</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for package in packages %}
+                                        <tr>
+                                            <td>{{ package.name }}</td>
+                                            <td>{{ package.price|number_format(2, ',', ' ') }} €</td>
+                                            <td>{{ (package.price * 1.20)|number_format(2, ',', ' ') }} €</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1" title="Modifier">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Package Modal -->
+    <div class="modal fade" id="createPackageModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Créer un Forfait</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {{ form_start(packageForm) }}
+                        <div class="form-group">
+                            {{ form_label(packageForm.name) }}
+                            {{ form_widget(packageForm.name, {'attr': {'class': 'form-control'}}) }}
+                            {% if form_errors(packageForm.name) %}
+                                <div class="text-danger small">{{ form_errors(packageForm.name) }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(packageForm.price) }}
+                            {{ form_widget(packageForm.price, {'attr': {'class': 'form-control'}}) }}
+                            {% if form_errors(packageForm.price) %}
+                                <div class="text-danger small">{{ form_errors(packageForm.price) }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Créer le Forfait
+                            </button>
+                        </div>
+                    {{ form_end(packageForm) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Modal -->
+    <div class="modal fade" id="statsModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-chart-bar me-2"></i>Statistiques Détaillées</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Period Selector -->
+                    <div class="period-selector mb-4">
+                        <div class="btn-group w-100" role="group" aria-label="Sélection de période">
+                            <input type="radio" class="btn-check" name="statsPeriod" id="period-today" autocomplete="off" checked>
+                            <label class="btn btn-outline-primary" for="period-today">Aujourd'hui</label>
+
+                            <input type="radio" class="btn-check" name="statsPeriod" id="period-week" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="period-week">Cette Semaine</label>
+
+                            <input type="radio" class="btn-check" name="statsPeriod" id="period-month" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="period-month">Ce Mois</label>
+
+                            <input type="radio" class="btn-check" name="statsPeriod" id="period-year" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="period-year">Cette Année</label>
+                        </div>
+                    </div>
+
+                    <!-- Stats Content -->
+                    <div id="stats-today" class="stats-content">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Revenus</h6>
+                                        <p class="mb-0 h4 text-success">{{ todayRevenueHt|number_format(2, ',', ' ') }} € HT</p>
+                                        <small class="text-muted">{{ todayRevenueTtc|number_format(2, ',', ' ') }} € TTC</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Charges</h6>
+                                        <p class="mb-0 h4 text-danger">{{ todayCharges|number_format(2, ',', ' ') }} €</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Commissions</h6>
+                                        <p class="mb-0 h4 text-warning">{{ todayCommissions|number_format(2, ',', ' ') }} €</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Bénéfice</h6>
+                                        <p class="mb-0 h4 {{ (todayRevenueHt - todayCharges - todayCommissions) >= 0 ? 'text-success' : 'text-danger' }}">
+                                            {{ (todayRevenueHt - todayCharges - todayCommissions)|number_format(2, ',', ' ') }} €
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="stats-week" class="stats-content" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Revenus</h6>
+                                        <p class="mb-0 h4 text-success">{{ weekRevenueHt|number_format(2, ',', ' ') }} € HT</p>
+                                        <small class="text-muted">{{ weekRevenueTtc|number_format(2, ',', ' ') }} € TTC</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Charges</h6>
+                                        <p class="mb-0 h4 text-danger">{{ weekCharges|number_format(2, ',', ' ') }} €</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Commissions</h6>
+                                        <p class="mb-0 h4 text-warning">{{ weekCommissions|number_format(2, ',', ' ') }} €</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Bénéfice</h6>
+                                        <p class="mb-0 h4 {{ (weekRevenueHt - weekCharges - weekCommissions) >= 0 ? 'text-success' : 'text-danger' }}">
+                                            {{ (weekRevenueHt - weekCharges - weekCommissions)|number_format(2, ',', ' ') }} €
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="stats-month" class="stats-content" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Revenus</h6>
+                                        <p class="mb-0 h4 text-success">{{ monthRevenueHt|number_format(2, ',', ' ') }} € HT</p>
+                                        <small class="text-muted">{{ monthRevenueTtc|number_format(2, ',', ' ') }} € TTC</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Charges</h6>
+                                        <p class="mb-0 h4 text-danger">{{ monthCharges|number_format(2, ',', ' ') }} €</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Commissions</h6>
+                                        <p class="mb-0 h4 text-warning">{{ monthCommissions|number_format(2, ',', ' ') }} €</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Bénéfice</h6>
+                                        <p class="mb-0 h4 {{ (monthRevenueHt - monthCharges - monthCommissions) >= 0 ? 'text-success' : 'text-danger' }}">
+                                            {{ (monthRevenueHt - monthCharges - monthCommissions)|number_format(2, ',', ' ') }} €
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="stats-year" class="stats-content" style="display: none;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Revenus</h6>
+                                        <p class="mb-0 h4 text-success">{{ yearRevenueHt|number_format(2, ',', ' ') }} € HT</p>
+                                        <small class="text-muted">{{ yearRevenueTtc|number_format(2, ',', ' ') }} € TTC</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Charges</h6>
+                                        <p class="mb-0 h4 text-danger">{{ yearCharges|number_format(2, ',', ' ') }} €</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Commissions</h6>
+                                        <p class="mb-0 h4 text-warning">{{ yearCommissions|number_format(2, ',', ' ') }} €</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Bénéfice</h6>
+                                        <p class="mb-0 h4 {{ (yearRevenueHt - yearCharges - yearCommissions) >= 0 ? 'text-success' : 'text-danger' }}">
+                                            {{ (yearRevenueHt - yearCharges - yearCommissions)|number_format(2, ',', ' ') }} €
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charges Modal -->
+    <div class="modal fade" id="chargesModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-euro-sign me-2"></i>Gérer les Charges</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createChargeModal">
+                            <i class="fas fa-plus me-2"></i>Ajouter une Charge
+                        </button>
+                    </div>
+                    {% if charges is empty %}
+                        <p class="text-muted text-center py-4">Aucune charge enregistrée.</p>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Description</th>
+                                        <th>Montant</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for charge in charges %}
+                                        <tr>
+                                            <td>{{ charge.description }}</td>
+                                            <td>{{ charge.amount|number_format(2, ',', ' ') }} €</td>
+                                            <td>{{ charge.date|date('d/m/Y') }}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary me-1" title="Modifier">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Charge Modal -->
+    <div class="modal fade" id="createChargeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus me-2"></i>Ajouter une Charge</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    {{ form_start(chargeForm) }}
+                        <div class="form-group">
+                            {{ form_label(chargeForm.description) }}
+                            {{ form_widget(chargeForm.description, {'attr': {'class': 'form-control'}}) }}
+                            {% if form_errors(chargeForm.description) %}
+                                <div class="text-danger small">{{ form_errors(chargeForm.description) }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(chargeForm.amount) }}
+                            {{ form_widget(chargeForm.amount, {'attr': {'class': 'form-control'}}) }}
+                            {% if form_errors(chargeForm.amount) %}
+                                <div class="text-danger small">{{ form_errors(chargeForm.amount) }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ form_label(chargeForm.date) }}
+                            {{ form_widget(chargeForm.date, {'attr': {'class': 'form-control'}}) }}
+                            {% if form_errors(chargeForm.date) %}
+                                <div class="text-danger small">{{ form_errors(chargeForm.date) }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>Ajouter la Charge
+                            </button>
+                        </div>
+                    {{ form_end(chargeForm) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Add Font Awesome if not loaded
+if (!document.querySelector('link[href*="font-awesome"]')) {
+    const faLink = document.createElement('link');
+    faLink.rel = 'stylesheet';
+    faLink.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css';
+    document.head.appendChild(faLink);
+}
+
+// Mobile menu functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const actionButtons = document.getElementById('actionButtons');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+
+    if (mobileMenuToggle && actionButtons && mobileOverlay) {
+        mobileMenuToggle.addEventListener('click', function() {
+            this.classList.toggle('active');
+            actionButtons.classList.toggle('active');
+            mobileOverlay.classList.toggle('active');
+        });
+
+        mobileOverlay.addEventListener('click', function() {
+            mobileMenuToggle.classList.remove('active');
+            actionButtons.classList.remove('active');
+            mobileOverlay.classList.remove('active');
+        });
+    }
+});
+
+// Period selector functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const periodRadios = document.querySelectorAll('input[name="statsPeriod"]');
+    const statsContents = document.querySelectorAll('.stats-content');
+
+    periodRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Hide all stats contents
+            statsContents.forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // Show selected period content
+            const selectedPeriod = this.id.replace('period-', '');
+            const selectedContent = document.getElementById('stats-' + selectedPeriod);
+            if (selectedContent) {
+                selectedContent.style.display = 'block';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
