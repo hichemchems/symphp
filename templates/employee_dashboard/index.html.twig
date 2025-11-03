@@ -8,6 +8,7 @@
 .selected-package {
     background-color: #e3f2fd !important;
     border-color: #5e6a74ff !important;
+    width: 100% !important;
 }
 </style>
 {% endblock %}
@@ -16,34 +17,34 @@
 <div class="container-fluid mt-4">
     <div class="row">
         <div class="col-12">
-            <h1 class="mb-4">Tableau de Bord Employé</h1>
-            <p class="text-muted">Bienvenue, {{ app.user.firstName }} {{ app.user.lastName }}</p>
+            <h1 class="mb-4 text-white">Tableau de Bord Employé</h1>
+            <p class="text-white">Bienvenue, {{ app.user.firstName }} {{ app.user.lastName }}</p>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
+    <div class="row mb-4 justify-content-center align-items-center" style="justify-content: space-evenly;">
+        <div class="col-md-4 d-flex justify-content-center">
+            <div class="card bg-primary text-white stats-card">
+                <div class="card-body text-center">
                     <h5 class="card-title">Revenus du Mois</h5>
                     <h3 class="card-text">{{ totalMonthlyRevenue|number_format(2, ',', ' ') }} €</h3>
                     <small>Revenus TTC ce mois-ci</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card bg-success text-white">
-                <div class="card-body">
+        <div class="col-md-4 d-flex justify-content-center">
+            <div class="card bg-success text-white stats-card">
+                <div class="card-body text-center">
                     <h5 class="card-title">Commission du Mois</h5>
                     <h3 class="card-text">{{ totalCommission|number_format(2, ',', ' ') }} €</h3>
                     <small>Commission à {{ commissionPercentage }}%</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card bg-info text-white">
-                <div class="card-body">
+        <div class="col-md-4 d-flex justify-content-center">
+            <div class="card bg-info text-white stats-card">
+                <div class="card-body text-center">
                     <h5 class="card-title">Chiffre d'Affaires HT</h5>
                     <h3 class="card-text" id="totalCaHt">{{ totalCaHt|number_format(2, ',', ' ') }} €</h3>
                     <small>Accumulé aujourd'hui</small>
@@ -98,32 +99,32 @@
 
     <!-- Today's Appointments -->
     <div class="row mb-4">
-        <div class="col-12">
+        <div class="col-12 appointments-section">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header text-center">
                     <h5 class="mb-0">Rendez-vous d'Aujourd'hui et Demain</h5>
                 </div>
                 <div class="card-body">
                     {% if todayAppointments is empty %}
-                        <p class="text-muted">Aucun rendez-vous prévu pour aujourd'hui.</p>
+                        <p class="text-muted text-center">Aucun rendez-vous prévu pour aujourd'hui.</p>
                     {% else %}
                         <div class="table-responsive">
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Date & Heure</th>
-                                        <th>Client</th>
-                                        <th>Service</th>
-                                        <th>Contact</th>
+                                        <th class="text-center">Date & Heure</th>
+                                        <th class="text-center">Client</th>
+                                        <th class="text-center">Service</th>
+                                        <th class="text-center">Contact</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for appointment in todayAppointments %}
                                         <tr>
-                                            <td>{{ appointment.date|date('d/m/Y H:i') }}</td>
-                                            <td>{{ appointment.clientName }}</td>
-                                            <td>{{ appointment.package.name }}</td>
-                                            <td>
+                                            <td class="text-center">{{ appointment.date|date('d/m/Y H:i') }}</td>
+                                            <td class="text-center">{{ appointment.clientName }}</td>
+                                            <td class="text-center">{{ appointment.package.name }}</td>
+                                            <td class="text-center">
                                                 <small>{{ appointment.clientEmail }}</small><br>
                                                 <small>{{ appointment.clientPhone }}</small>
                                             </td>
@@ -154,32 +155,32 @@
 
     <!-- Recent Revenues -->
     <div class="row">
-        <div class="col-12">
+        <div class="col-12 revenue-section">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header text-center">
                     <h5 class="mb-0">Revenus Récents</h5>
                 </div>
                 <div class="card-body">
                     {% if recentRevenues is empty %}
-                        <p class="text-muted">Aucun revenu enregistré récemment.</p>
+                        <p class="text-muted text-center">Aucun revenu enregistré récemment.</p>
                     {% else %}
                         <div class="table-responsive">
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
-                                        <th>Date</th>
-                                        <th>Service</th>
-                                        <th>Montant HT</th>
-                                        <th>Montant TTC</th>
+                                        <th class="text-center">Date</th>
+                                        <th class="text-center">Service</th>
+                                        <th class="text-center">Montant HT</th>
+                                        <th class="text-center">Montant TTC</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for revenue in recentRevenues %}
                                         <tr>
-                                            <td>{{ revenue.date|date('d/m/Y') }}</td>
-                                            <td>{{ revenue.package.name }}</td>
-                                            <td>{{ revenue.amountHt|number_format(2, ',', ' ') }} €</td>
-                                            <td><strong>{{ revenue.amountTtc|number_format(2, ',', ' ') }} €</strong></td>
+                                            <td class="text-center">{{ revenue.date|date('d/m/Y') }}</td>
+                                            <td class="text-center">{{ revenue.package.name }}</td>
+                                            <td class="text-center">{{ revenue.amountHt|number_format(2, ',', ' ') }} €</td>
+                                            <td class="text-center"><strong>{{ revenue.amountTtc|number_format(2, ',', ' ') }} €</strong></td>
                                         </tr>
                                     {% endfor %}
                                 </tbody>

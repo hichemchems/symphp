@@ -100,66 +100,100 @@ body {
         padding: 1rem !important;
     }
 
-    /* Login and Registration Forms */
-    .card {
-        margin: 2rem auto !important;
-        max-width: 500px !important;
-    }
-
-    .card-body {
-        padding: 2rem !important;
-    }
-
+    /* Login and Registration Forms - Zoom only, no layout changes */
     .card h1 {
-        font-size: 2.5rem !important;
-        margin-bottom: 2rem !important;
+        font-size: 2.2rem !important;
     }
 
     .form-label {
-        font-size: 1.4rem !important;
+        font-size: 1.3rem !important;
         font-weight: 600 !important;
-        margin-bottom: 0.8rem !important;
     }
 
     .form-control {
-        font-size: 1.6rem !important;
-        padding: 1rem !important;
-        height: auto !important;
-        margin-bottom: 1rem !important;
+        font-size: 1.4rem !important;
+        padding: 0.8rem !important;
     }
 
     .btn {
-        font-size: 1.6rem !important;
-        padding: 1rem 2rem !important;
-        height: auto !important;
-        margin-top: 1rem !important;
+        font-size: 1.4rem !important;
+        padding: 0.8rem 1.5rem !important;
     }
 
-    /* Registration specific */
-    .registration-container {
-        max-width: 700px !important;
-        padding: 3rem !important;
-    }
-
+    /* Registration specific - Zoom only */
     .registration-header h1 {
-        font-size: 3rem !important;
+        font-size: 2.5rem !important;
     }
 
     .registration-header p {
-        font-size: 1.4rem !important;
+        font-size: 1.2rem !important;
     }
 
     .form-group label {
-        font-size: 1.4rem !important;
-    }
-
-    .checkbox-group label {
         font-size: 1.3rem !important;
     }
 
+    .checkbox-group label {
+        font-size: 1.2rem !important;
+    }
+
     .btn-register {
-        font-size: 1.6rem !important;
-        padding: 1.2rem !important;
-        margin-top: 2rem !important;
+        font-size: 1.4rem !important;
+        padding: 1rem !important;
+    }
+
+    /* Dashboard improvements for readability */
+    .dashboard-container {
+        padding: 1rem !important;
+    }
+
+    .stats-card {
+        margin-bottom: 1rem !important;
+    }
+
+    .stats-card .card-title {
+        font-size: 1.2rem !important;
+        font-weight: 600 !important;
+    }
+
+    .stats-card .card-text {
+        font-size: 1.8rem !important;
+        font-weight: bold !important;
+    }
+
+    .package-button {
+        font-size: 1.3rem !important;
+        padding: 1rem !important;
+        margin: 0.5rem !important;
+    }
+
+    /* Appointments and Revenue sections */
+    .appointments-section,
+    .revenue-section {
+        width: 100% !important;
+        margin: 1rem 0 !important;
+    }
+
+    .appointments-section h3,
+    .revenue-section h3 {
+        font-size: 1.4rem !important;
+        text-align: center !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .table th,
+    .table td {
+        font-size: 1.2rem !important;
+        padding: 0.8rem !important;
+        text-align: center !important;
+    }
+
+    /* Modal improvements */
+    .modal-content {
+        font-size: 1.2rem !important;
+    }
+
+    .modal-title {
+        font-size: 1.5rem !important;
     }
 }
