@@ -3,7 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Employee;
+use App\Entity\Package;
+use App\Entity\Charge;
 use App\Form\EmployeeFormType;
+use App\Form\PackageFormType;
+use App\Form\ChargeFormType;
 use App\Repository\AppointmentRepository;
 use App\Repository\EmployeeRepository;
 use App\Repository\PackageRepository;
@@ -27,20 +31,22 @@ final class AdminDashboardController extends AbstractController
         Request $request,
         AppointmentRepository $appointmentRepository,
         EmployeeRepository $employeeRepository,
+        PackageRepository $packageRepository,
         RevenueRepository $revenueRepository,
         StatisticsRepository $statisticsRepository,
         EntityManagerInterface $entityManager,
         UserPasswordHasherInterface $passwordHasher
     ): Response {
         $this->entityManager = $entityManager;
+
         // Handle employee creation form
         $employee = new Employee();
-        $form = $this->createForm(EmployeeFormType::class, $employee);
-        $form->handleRequest($request);
+        $employeeForm = $this->createForm(EmployeeFormType::class, $employee);
+        $employeeForm->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($employeeForm->isSubmitted() && $employeeForm->isValid()) {
             // Hash the password
-            $hashedPassword = $passwordHasher->hashPassword($employee, $form->get('plainPassword')->getData());
+            $hashedPassword = $passwordHasher->hashPassword($employee, $employeeForm->get('plainPassword')->getData());
             $employee->setPassword($hashedPassword);
 
             // Set employee role
@@ -53,6 +59,33 @@ final class AdminDashboardController extends AbstractController
             $entityManager->flush();
 
             $this->addFlash('success', 'Employé créé avec succès !');
+            return $this->redirectToRoute('app_admin_dashboard');
+        }
+
+        // Handle package creation form
+        $package = new Package();
+        $packageForm = $this->createForm(PackageFormType::class, $package);
+        $packageForm->handleRequest($request);
+
+        if ($packageForm->isSubmitted() && $packageForm->isValid()) {
+            // The price is already set as HT in the entity
+            $entityManager->persist($package);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Forfait créé avec succès !');
+            return $this->redirectToRoute('app_admin_dashboard');
+        }
+
+        // Handle charge creation form
+        $charge = new Charge();
+        $chargeForm = $this->createForm(ChargeFormType::class, $charge);
+        $chargeForm->handleRequest($request);
+
+        if ($chargeForm->isSubmitted() && $chargeForm->isValid()) {
+            $entityManager->persist($charge);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Charge ajoutée avec succès !');
             return $this->redirectToRoute('app_admin_dashboard');
         }
         // Get all employees
@@ -136,6 +169,15 @@ final class AdminDashboardController extends AbstractController
             $employeeStats[$employee->getId()] = $this->getEmployeeStats($employee, $today);
         }
 
+        // Get all packages
+        $packages = $packageRepository->findAll();
+
+        // Get all charges
+        $charges = $this->entityManager->getRepository(Charge::class)->findBy(
+            [],
+            ['date' => 'DESC']
+        );
+
         // Get recent appointments
         $recentAppointments = $appointmentRepository->findBy(
             [],
@@ -145,6 +187,8 @@ final class AdminDashboardController extends AbstractController
 
         return $this->render('admin_dashboard/index.html.twig', [
             'employees' => $employees,
+            'packages' => $packages,
+            'charges' => $charges,
             'todayRevenueHt' => $todayRevenueHt,
             'todayRevenueTtc' => $todayRevenueTtc,
             'weekRevenueHt' => $weekRevenueHt,
@@ -163,7 +207,9 @@ final class AdminDashboardController extends AbstractController
             'yearCommissions' => $yearCommissions,
             'employeeStats' => $employeeStats,
             'recentAppointments' => $recentAppointments,
-            'employeeForm' => $form->createView(),
+            'employeeForm' => $employeeForm->createView(),
+            'packageForm' => $packageForm->createView(),
+            'chargeForm' => $chargeForm->createView(),
         ]);
     }
 

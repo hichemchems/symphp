@@ -1,25 +1,335 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Register{% endblock %}
+{% block title %}Inscription - Easy Gestion Barber{% endblock %}
+
+{% block stylesheets %}
+<style>
+.registration-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.registration-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #2c3e50;
+}
+
+.registration-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    font-weight: 300;
+}
+
+.registration-header p {
+    color: #7f8c8d;
+    font-size: 1.1rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #34495e;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.75rem;
+    border: 2px solid #ecf0f1;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.password-strength {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.password-strength.weak { color: #e74c3c; }
+.password-strength.medium { color: #f39c12; }
+.password-strength.strong { color: #27ae60; }
+
+.checkbox-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+    margin-top: 0.25rem;
+    width: auto;
+    -webkit-appearance: checkbox;
+    -moz-appearance: checkbox;
+    appearance: checkbox;
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #3498db;
+    border-radius: 3px;
+    background: white;
+    cursor: pointer;
+    position: relative;
+}
+
+.checkbox-group input[type="checkbox"]:checked {
+    background: #3498db;
+    border-color: #3498db;
+}
+
+.checkbox-group input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: -2px;
+    left: 2px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.checkbox-group label {
+    margin-bottom: 0;
+    font-weight: normal;
+    line-height: 1.4;
+}
+
+.btn-register {
+    width: 100%;
+    padding: 0.75rem;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-register:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.btn-register:active {
+    transform: translateY(0);
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+.alert-danger {
+    background-color: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+}
+
+.form-errors {
+    background-color: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+}
+
+.field-errors {
+    color: #e74c3c;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+</style>
+{% endblock %}
 
 {% block body %}
-    {% for flash_error in app.flashes('verify_email_error') %}
-        <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
-    {% endfor %}
+<div class="container">
+    <div class="registration-container">
+        <div class="registration-header">
+            <h1>🪒 Easy Gestion Barber</h1>
+            <p>Créez votre compte administrateur</p>
+        </div>
 
-    <h1>Register</h1>
+        {% for flash_error in app.flashes('verify_email_error') %}
+            <div class="alert alert-danger" role="alert">{{ flash_error }}</div>
+        {% endfor %}
 
-    {{ form_errors(registrationForm) }}
+        {% if form_errors(registrationForm) %}
+        <div class="form-errors">
+            {{ form_errors(registrationForm) }}
+        </div>
+        {% endif %}
 
-    {{ form_start(registrationForm) }}
-        {{ form_row(registrationForm.firstName) }}
-        {{ form_row(registrationForm.lastName) }}
-        {{ form_row(registrationForm.email) }}
-        {{ form_row(registrationForm.plainPassword, {
-            label: 'Password'
-        }) }}
-        {{ form_row(registrationForm.agreeTerms) }}
+        {{ form_start(registrationForm, {'attr': {'novalidate': 'novalidate'}}) }}
 
-        <button type="submit" class="btn">Register</button>
-    {{ form_end(registrationForm) }}
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form_label(registrationForm.firstName) }}
+                    {{ form_widget(registrationForm.firstName) }}
+                    {% if form_errors(registrationForm.firstName) %}
+                        <div class="field-errors">{{ form_errors(registrationForm.firstName) }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(registrationForm.lastName) }}
+                    {{ form_widget(registrationForm.lastName) }}
+                    {% if form_errors(registrationForm.lastName) %}
+                        <div class="field-errors">{{ form_errors(registrationForm.lastName) }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                {{ form_label(registrationForm.email) }}
+                {{ form_widget(registrationForm.email) }}
+                {% if form_errors(registrationForm.email) %}
+                    <div class="field-errors">{{ form_errors(registrationForm.email) }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(registrationForm.emailConfirm) }}
+                {{ form_widget(registrationForm.emailConfirm) }}
+                {% if form_errors(registrationForm.emailConfirm) %}
+                    <div class="field-errors">{{ form_errors(registrationForm.emailConfirm) }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(registrationForm.plainPassword) }}
+                {{ form_widget(registrationForm.plainPassword) }}
+                <div class="password-strength" id="password-strength" style="color:red">Minimum 6 caractères</div>
+                {% if form_errors(registrationForm.plainPassword) %}
+                    <div class="field-errors">{{ form_errors(registrationForm.plainPassword) }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form_label(registrationForm.plainPasswordConfirm) }}
+                {{ form_widget(registrationForm.plainPasswordConfirm) }}
+                {% if form_errors(registrationForm.plainPasswordConfirm) %}
+                    <div class="field-errors">{{ form_errors(registrationForm.plainPasswordConfirm) }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    {{ form_widget(registrationForm.agreeTerms) }}
+                    {{ form_label(registrationForm.agreeTerms) }}
+                </div>
+                {% if form_errors(registrationForm.agreeTerms) %}
+                    <div class="field-errors">{{ form_errors(registrationForm.agreeTerms) }}</div>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="btn-register">Créer mon compte administrateur</button>
+        {{ form_end(registrationForm) }}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordInput = document.querySelector('input[name="registration_form[plainPassword]"]');
+    const passwordConfirmInput = document.querySelector('input[name="registration_form[plainPasswordConfirm]"]');
+    const emailInput = document.querySelector('input[name="registration_form[email]"]');
+    const emailConfirmInput = document.querySelector('input[name="registration_form[emailConfirm]"]');
+    const strengthIndicator = document.getElementById('password-strength');
+
+    // Password strength indicator
+    passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        let strength = 0;
+        let feedback = [];
+
+        if (password.length >= 6) strength++;
+        if (password.length >= 8) strength++;
+        if (/[a-z]/.test(password)) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+        if (strength <= 2) {
+            strengthIndicator.className = 'password-strength weak';
+            strengthIndicator.textContent = 'Faible';
+        } else if (strength <= 4) {
+            strengthIndicator.className = 'password-strength medium';
+            strengthIndicator.textContent = 'Moyen';
+        } else {
+            strengthIndicator.className = 'password-strength strong';
+            strengthIndicator.textContent = 'Fort';
+        }
+    });
+
+    // Real-time validation for email confirmation
+    emailConfirmInput.addEventListener('input', function() {
+        const originalEmail = emailInput.value;
+        const confirmEmail = this.value;
+
+        if (confirmEmail && originalEmail !== confirmEmail) {
+            this.style.borderColor = '#e74c3c';
+        } else if (confirmEmail && originalEmail === confirmEmail) {
+            this.style.borderColor = '#27ae60';
+        } else {
+            this.style.borderColor = '#ecf0f1';
+        }
+    });
+
+    // Real-time validation for password confirmation
+    passwordConfirmInput.addEventListener('input', function() {
+        const originalPassword = passwordInput.value;
+        const confirmPassword = this.value;
+
+        if (confirmPassword && originalPassword !== confirmPassword) {
+            this.style.borderColor = '#e74c3c';
+        } else if (confirmPassword && originalPassword === confirmPassword) {
+            this.style.borderColor = '#27ae60';
+        } else {
+            this.style.borderColor = '#ecf0f1';
+        }
+    });
+
+    // Update confirm fields when original fields change
+    emailInput.addEventListener('input', function() {
+        if (emailConfirmInput.value) {
+            emailConfirmInput.dispatchEvent(new Event('input'));
+        }
+    });
+
+    passwordInput.addEventListener('input', function() {
+        if (passwordConfirmInput.value) {
+            passwordConfirmInput.dispatchEvent(new Event('input'));
+        }
+    });
+});
+</script>
 {% endblock %}

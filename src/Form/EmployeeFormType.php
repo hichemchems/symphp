@@ -12,6 +12,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\Callback;
 
 class EmployeeFormType extends AbstractType
 {
@@ -36,6 +37,22 @@ class EmployeeFormType extends AbstractType
                     new NotBlank(['message' => 'L\'email est obligatoire']),
                 ],
             ])
+            ->add('emailConfirm', EmailType::class, [
+                'label' => 'Confirmer l\'email',
+                'mapped' => false,
+                'constraints' => [
+                    new NotBlank(['message' => 'Veuillez confirmer l\'email']),
+                    new Callback([
+                        'callback' => function($value, $context) {
+                            $originalEmail = $context->getRoot()->get('email')->getData();
+                            if ($value !== $originalEmail) {
+                                $context->buildViolation('Les emails ne correspondent pas')
+                                    ->addViolation();
+                            }
+                        }
+                    ])
+                ],
+            ])
             ->add('plainPassword', PasswordType::class, [
                 'label' => 'Mot de passe',
                 'mapped' => false,
@@ -45,6 +62,22 @@ class EmployeeFormType extends AbstractType
                         'min' => 6,
                         'minMessage' => 'Le mot de passe doit contenir au moins {{ limit }} caractères',
                     ]),
+                ],
+            ])
+            ->add('plainPasswordConfirm', PasswordType::class, [
+                'label' => 'Confirmer le mot de passe',
+                'mapped' => false,
+                'constraints' => [
+                    new NotBlank(['message' => 'Veuillez confirmer le mot de passe']),
+                    new Callback([
+                        'callback' => function($value, $context) {
+                            $originalPassword = $context->getRoot()->get('plainPassword')->getData();
+                            if ($value !== $originalPassword) {
+                                $context->buildViolation('Les mots de passe ne correspondent pas')
+                                    ->addViolation();
+                            }
+                        }
+                    ])
                 ],
             ])
             ->add('commissionPercentage', NumberType::class, [

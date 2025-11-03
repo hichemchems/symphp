@@ -1,4 +1,83 @@
 body {
     background-color: black;
-    color: yellow;
+    color: rgb(10, 10, 8);
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 1.2rem !important;
+    }
+
+    h1 {
+        font-size: 3rem !important;
+        text-align: center;
+    }
+
+    h2, h3, h4, h5, h6 {
+        font-size: 1.8rem !important;
+    }
+
+    p {
+        font-size: 1.4rem !important;
+        text-align: center;
+        line-height: 1.6;
+    }
+
+    .employee-card h3 {
+        font-size: 2.5rem !important;
+        text-align: center;
+    }
+
+    .employee-stat-label {
+        font-size: 1.3rem !important;
+    }
+
+    .employee-stat-value {
+        font-size: 1.5rem !important;
+        font-weight: bold;
+    }
+
+    .stat-card .value {
+        font-size: 2.5rem !important;
+    }
+
+    .stat-card .subtitle {
+        font-size: 1.2rem !important;
+    }
+
+    .action-btn h5 {
+        font-size: 1.4rem !important;
+    }
+
+    .btn {
+        font-size: 1.8rem !important;
+        padding: 0.8rem 1.5rem !important;
+    }
+
+    .form-control {
+        font-size: 1.2rem !important;
+        padding: 0.8rem !important;
+    }
+
+    .table th, .table td {
+        font-size: 1.2rem !important;
+        padding: 0.8rem !important;
+    }
+
+    .modal-title {
+        font-size: 1.8rem !important;
+    }
+
+    .card-title {
+        font-size: 1.6rem !important;
+    }
+
+    .mobile-menu-toggle {
+        font-size: 3rem !important;
+        padding: 0.8rem !important;
+    }
+
+    .action-btn h5{
+        font-size: 1.8rem !important;
+    }
 }
