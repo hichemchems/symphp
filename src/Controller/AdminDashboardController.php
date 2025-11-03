@@ -253,28 +253,31 @@ final class AdminDashboardController extends AbstractController
 
     private function getEmployeeStats(\App\Entity\Employee $employee, \DateTime $startDate): array
     {
-        $appointmentRepository = $this->entityManager->getRepository(\App\Entity\Appointment::class);
-        $appointments = $appointmentRepository->createQueryBuilder('a')
-            ->where('a.employee = :employee')
-            ->andWhere('a.date >= :start')
+        // Get revenue data from Revenue entity for the period
+        $revenueRepository = $this->entityManager->getRepository(\App\Entity\Revenue::class);
+        $revenues = $revenueRepository->createQueryBuilder('r')
+            ->where('r.employee = :employee')
+            ->andWhere('r.date >= :start')
             ->setParameter('employee', $employee)
             ->setParameter('start', $startDate)
             ->getQuery()
             ->getResult();
 
         $totalRevenue = 0;
+        $totalRevenueHt = 0;
         $totalCommission = 0;
-        $clientCount = count($appointments);
+        $clientCount = count($revenues);
 
-        foreach ($appointments as $appointment) {
-            $revenue = (float) $appointment->getPackage()->getPrice();
-            $totalRevenue += $revenue;
-            $commission = ($revenue * $employee->getCommissionPercentage()) / 100;
+        foreach ($revenues as $revenue) {
+            $totalRevenueHt += (float) $revenue->getAmountHt();
+            $totalRevenue += (float) $revenue->getAmountTtc();
+            $commission = ((float) $revenue->getAmountHt() * $employee->getCommissionPercentage()) / 100;
             $totalCommission += $commission;
         }
 
         return [
             'revenue' => $totalRevenue,
+            'revenueHt' => $totalRevenueHt,
             'commission' => $totalCommission,
             'clients' => $clientCount,
         ];

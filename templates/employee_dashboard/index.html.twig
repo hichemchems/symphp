@@ -341,16 +341,68 @@ function closePackages() {
 
 function confirmPackageSelection() {
     if (selectedPackage) {
-        // Add to CA HT
-        totalCaHt += selectedPackage.priceHt;
-        updateCaDisplay();
+        // Send AJAX request to save the selection
+        fetch('/employee/select-package', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'package_id=' + selectedPackage.id
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Add to CA HT
+                totalCaHt += selectedPackage.priceHt;
+                updateCaDisplay();
 
-        // Show success message
-        alert(`Forfait "${selectedPackage.name}" ajouté avec succès!\nPrix HT ajouté au CA: ${selectedPackage.priceHt.toFixed(2)} €\nCommission: ${selectedPackage.commission.toFixed(2)} €`);
+                // Update monthly stats
+                updateMonthlyStats();
 
-        // Hide packages and show button again
-        closePackages();
+                // Show success message
+                alert(`Forfait "${selectedPackage.name}" ajouté avec succès!\nPrix HT ajouté au CA: ${selectedPackage.priceHt.toFixed(2)} €\nCommission: ${selectedPackage.commission.toFixed(2)} €`);
+
+                // Hide packages and show button again
+                closePackages();
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Une erreur est survenue lors de la sauvegarde.');
+        });
     }
 }
+
+function updateMonthlyStats() {
+    // Fetch updated stats from server
+    fetch('/employee/package-stats')
+    .then(response => response.json())
+    .then(data => {
+        // Update the displayed values
+        document.getElementById('totalCaHt').textContent = data.total_ca_ht.toFixed(2).replace('.', ',') + ' €';
+
+        // Update monthly revenue and commission cards
+        const monthlyRevenueCard = document.querySelector('.card.bg-primary .card-text');
+        const monthlyCommissionCard = document.querySelector('.card.bg-success .card-text');
+
+        if (monthlyRevenueCard) {
+            monthlyRevenueCard.textContent = data.total_monthly_revenue.toFixed(2).replace('.', ',') + ' €';
+        }
+        if (monthlyCommissionCard) {
+            monthlyCommissionCard.textContent = data.total_commission.toFixed(2).replace('.', ',') + ' €';
+        }
+    })
+    .catch(error => {
+        console.error('Error updating stats:', error);
+    });
+}
+
+// Initialize CA HT on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateMonthlyStats();
+});
 </script>
 {% endblock %}
