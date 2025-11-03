@@ -47,12 +47,28 @@ final class EmployeeDashboardController extends AbstractController
             ->getResult();
 
         $totalMonthlyRevenue = array_reduce($monthlyRevenues, function($sum, $revenue) {
-            return $sum + $revenue->getAmountTtc();
+            return $sum + $revenue->getAmountHt(); // Use HT for commission calculation
         }, 0);
 
-        // Calculate commission for current month
+        // Calculate commission for current month (based on HT revenue)
         $commissionPercentage = $user->getCommissionPercentage() ?? 0;
         $totalCommission = $totalMonthlyRevenue * ($commissionPercentage / 100);
+
+        // Calculate today's CA HT
+        $today = new \DateTime('today');
+        $tomorrow = new \DateTime('tomorrow');
+        $todayRevenues = $revenueRepository->createQueryBuilder('r')
+            ->where('r.employee = :employee')
+            ->andWhere('r.date >= :start AND r.date < :end')
+            ->setParameter('employee', $user)
+            ->setParameter('start', $today)
+            ->setParameter('end', $tomorrow)
+            ->getQuery()
+            ->getResult();
+
+        $totalCaHt = array_reduce($todayRevenues, function($sum, $revenue) {
+            return $sum + $revenue->getAmountHt();
+        }, 0);
 
         // Get all available packages
         $packages = $packageRepository->findAll();
@@ -88,6 +104,7 @@ final class EmployeeDashboardController extends AbstractController
             'totalMonthlyRevenue' => $totalMonthlyRevenue,
             'totalCommission' => $totalCommission,
             'commissionPercentage' => $commissionPercentage,
+            'totalCaHt' => $totalCaHt,
             'packagesWithCommission' => $packagesWithCommission,
             'weeklyStats' => $weeklyStats,
             'monthlyStats' => $monthlyStats,

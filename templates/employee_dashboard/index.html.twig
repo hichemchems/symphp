@@ -45,7 +45,7 @@
             <div class="card bg-info text-white">
                 <div class="card-body">
                     <h5 class="card-title">Chiffre d'Affaires HT</h5>
-                    <h3 class="card-text" id="totalCaHt">0,00 €</h3>
+                    <h3 class="card-text" id="totalCaHt">{{ totalCaHt|number_format(2, ',', ' ') }} €</h3>
                     <small>Accumulé aujourd'hui</small>
                 </div>
             </div>
@@ -400,8 +400,12 @@ function updateMonthlyStats() {
     });
 }
 
-// Initialize CA HT on page load
+// Initialize CA HT on page load with server data
 document.addEventListener('DOMContentLoaded', function() {
+    // Set initial CA HT from server
+    const initialCaHt = {{ totalCaHt }};
+    totalCaHt = initialCaHt;
+
     updateMonthlyStats();
 });
 </script>
