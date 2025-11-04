@@ -7,9 +7,8 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Dashboard;
 use EasyCorp\Bundle\EasyAdminBundle\Config\MenuItem;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractDashboardController;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
-#[AdminDashboard]
 class DashboardController extends AbstractDashboardController
 {
     #[Route('/admin', name: 'admin')]
@@ -47,7 +46,8 @@ class DashboardController extends AbstractDashboardController
     public function configureMenuItems(): iterable
     {
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
-        yield MenuItem::linkToCrud('Employees', 'fas fa-users', \App\Entity\Employee::class);
+        yield MenuItem::linkToCrud('Employees', 'fas fa-users', \App\Entity\Employee::class)
+            ->setQueryParameter('filters[createdBy]', $this->getUser()->getId());
         yield MenuItem::linkToCrud('Packages', 'fas fa-list', \App\Entity\Package::class);
         yield MenuItem::linkToCrud('Charges', 'fas fa-money-bill', \App\Entity\Charge::class);
         yield MenuItem::linkToCrud('Revenues', 'fas fa-chart-line', \App\Entity\Revenue::class);
