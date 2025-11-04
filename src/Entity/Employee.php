@@ -50,10 +50,14 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Revenue::class)]
     private Collection $revenues;
 
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Charge::class)]
+    private Collection $charges;
+
     public function __construct()
     {
         $this->appointments = new ArrayCollection();
         $this->revenues = new ArrayCollection();
+        $this->charges = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -228,6 +232,36 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     public function setCreatedBy(?Employee $createdBy): static
     {
         $this->createdBy = $createdBy;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Charge>
+     */
+    public function getCharges(): Collection
+    {
+        return $this->charges;
+    }
+
+    public function addCharge(Charge $charge): static
+    {
+        if (!$this->charges->contains($charge)) {
+            $this->charges->add($charge);
+            $charge->setEmployee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCharge(Charge $charge): static
+    {
+        if ($this->charges->removeElement($charge)) {
+            // set the owning side to null (unless already changed)
+            if ($charge->getEmployee() === $this) {
+                $charge->setEmployee(null);
+            }
+        }
 
         return $this;
     }

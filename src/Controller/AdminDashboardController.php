@@ -85,6 +85,9 @@ final class AdminDashboardController extends AbstractController
         $chargeForm->handleRequest($request);
 
         if ($chargeForm->isSubmitted() && $chargeForm->isValid()) {
+            // Set the creator (current admin) for the charge
+            $charge->setEmployee($this->getUser());
+
             $entityManager->persist($charge);
             $entityManager->flush();
 
