@@ -94,11 +94,14 @@ final class AdminDashboardController extends AbstractController
         // Get only employees created by this admin
         $employees = $employeeRepository->findBy(['createdBy' => $this->getUser()]);
 
-        // Calculate global statistics for today
+        // Calculate global statistics for today (only from employees created by this admin)
         $today = new \DateTime('today');
         $todayRevenues = $revenueRepository->createQueryBuilder('r')
+            ->join('r.employee', 'e')
             ->where('r.date >= :start')
+            ->andWhere('e.createdBy = :admin')
             ->setParameter('start', $today)
+            ->setParameter('admin', $this->getUser())
             ->getQuery()
             ->getResult();
 
@@ -109,11 +112,14 @@ final class AdminDashboardController extends AbstractController
             $todayRevenueTtc += (float) $revenue->getAmountTtc();
         }
 
-        // Calculate global statistics for current week
+        // Calculate global statistics for current week (only from employees created by this admin)
         $weekStart = new \DateTime('monday this week');
         $weekRevenues = $revenueRepository->createQueryBuilder('r')
+            ->join('r.employee', 'e')
             ->where('r.date >= :start')
+            ->andWhere('e.createdBy = :admin')
             ->setParameter('start', $weekStart)
+            ->setParameter('admin', $this->getUser())
             ->getQuery()
             ->getResult();
 
@@ -124,11 +130,14 @@ final class AdminDashboardController extends AbstractController
             $weekRevenueTtc += (float) $revenue->getAmountTtc();
         }
 
-        // Calculate global statistics for current month
+        // Calculate global statistics for current month (only from employees created by this admin)
         $monthStart = new \DateTime('first day of this month');
         $monthRevenues = $revenueRepository->createQueryBuilder('r')
+            ->join('r.employee', 'e')
             ->where('r.date >= :start')
+            ->andWhere('e.createdBy = :admin')
             ->setParameter('start', $monthStart)
+            ->setParameter('admin', $this->getUser())
             ->getQuery()
             ->getResult();
 
@@ -139,11 +148,14 @@ final class AdminDashboardController extends AbstractController
             $monthRevenueTtc += (float) $revenue->getAmountTtc();
         }
 
-        // Calculate yearly statistics
+        // Calculate yearly statistics (only from employees created by this admin)
         $yearStart = new \DateTime('first day of January this year');
         $yearRevenues = $revenueRepository->createQueryBuilder('r')
+            ->join('r.employee', 'e')
             ->where('r.date >= :start')
+            ->andWhere('e.createdBy = :admin')
             ->setParameter('start', $yearStart)
+            ->setParameter('admin', $this->getUser())
             ->getQuery()
             ->getResult();
 
@@ -154,17 +166,17 @@ final class AdminDashboardController extends AbstractController
             $yearRevenueTtc += (float) $revenue->getAmountTtc();
         }
 
-        // Calculate charges for different periods
-        $todayCharges = $this->calculateCharges($today);
-        $weekCharges = $this->calculateCharges($weekStart);
-        $monthCharges = $this->calculateCharges($monthStart);
-        $yearCharges = $this->calculateCharges($yearStart);
+        // Calculate charges for different periods (only from employees created by this admin)
+        $todayCharges = $this->calculateCharges($today, $this->getUser());
+        $weekCharges = $this->calculateCharges($weekStart, $this->getUser());
+        $monthCharges = $this->calculateCharges($monthStart, $this->getUser());
+        $yearCharges = $this->calculateCharges($yearStart, $this->getUser());
 
-        // Calculate commissions for different periods
-        $todayCommissions = $this->calculateCommissions($today);
-        $weekCommissions = $this->calculateCommissions($weekStart);
-        $monthCommissions = $this->calculateCommissions($monthStart);
-        $yearCommissions = $this->calculateCommissions($yearStart);
+        // Calculate commissions for different periods (only from employees created by this admin)
+        $todayCommissions = $this->calculateCommissions($today, $this->getUser());
+        $weekCommissions = $this->calculateCommissions($weekStart, $this->getUser());
+        $monthCommissions = $this->calculateCommissions($monthStart, $this->getUser());
+        $yearCommissions = $this->calculateCommissions($yearStart, $this->getUser());
 
         // Get employee statistics
         $employeeStats = [];
@@ -175,18 +187,24 @@ final class AdminDashboardController extends AbstractController
         // Get all packages
         $packages = $packageRepository->findAll();
 
-        // Get all charges
-        $charges = $this->entityManager->getRepository(Charge::class)->findBy(
-            [],
-            ['date' => 'DESC']
-        );
+        // Get all charges (only from employees created by this admin)
+        $charges = $this->entityManager->getRepository(Charge::class)->createQueryBuilder('c')
+            ->join('c.employee', 'e')
+            ->where('e.createdBy = :admin')
+            ->setParameter('admin', $this->getUser())
+            ->orderBy('c.date', 'DESC')
+            ->getQuery()
+            ->getResult();
 
-        // Get recent appointments
-        $recentAppointments = $appointmentRepository->findBy(
-            [],
-            ['date' => 'DESC'],
-            10
-        );
+        // Get recent appointments (only from employees created by this admin)
+        $recentAppointments = $appointmentRepository->createQueryBuilder('a')
+            ->join('a.employee', 'e')
+            ->where('e.createdBy = :admin')
+            ->setParameter('admin', $this->getUser())
+            ->orderBy('a.date', 'DESC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult();
 
         return $this->render('admin_dashboard/index.html.twig', [
             'employees' => $employees,
@@ -216,13 +234,16 @@ final class AdminDashboardController extends AbstractController
         ]);
     }
 
-    private function calculateCharges(\DateTime $startDate): float
+    private function calculateCharges(\DateTime $startDate, Employee $admin): float
     {
-        // Calculate total charges from start date to now
+        // Calculate total charges from start date to now (only from employees created by this admin)
         $chargeRepository = $this->entityManager->getRepository(\App\Entity\Charge::class);
         $charges = $chargeRepository->createQueryBuilder('c')
+            ->join('c.employee', 'e')
             ->where('c.date >= :start')
+            ->andWhere('e.createdBy = :admin')
             ->setParameter('start', $startDate)
+            ->setParameter('admin', $admin)
             ->getQuery()
             ->getResult();
 
@@ -234,13 +255,16 @@ final class AdminDashboardController extends AbstractController
         return $totalCharges;
     }
 
-    private function calculateCommissions(\DateTime $startDate): float
+    private function calculateCommissions(\DateTime $startDate, Employee $admin): float
     {
-        // Calculate total commissions paid to employees from start date to now
+        // Calculate total commissions paid to employees from start date to now (only from employees created by this admin)
         $appointmentRepository = $this->entityManager->getRepository(\App\Entity\Appointment::class);
         $appointments = $appointmentRepository->createQueryBuilder('a')
+            ->join('a.employee', 'e')
             ->where('a.date >= :start')
+            ->andWhere('e.createdBy = :admin')
             ->setParameter('start', $startDate)
+            ->setParameter('admin', $admin)
             ->getQuery()
             ->getResult();
 
