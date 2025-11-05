@@ -190,10 +190,10 @@ final class AdminDashboardController extends AbstractController
         // Get all packages
         $packages = $packageRepository->findAll();
 
-        // Get all charges (only from employees created by this admin) with optional date filtering
+        // Get all charges (from admin's own charges OR employees created by this admin) with optional date filtering
         $chargesQuery = $this->entityManager->getRepository(Charge::class)->createQueryBuilder('c')
             ->join('c.employee', 'e')
-            ->where('e.createdBy = :admin')
+            ->where('e.id = :admin OR e.createdBy = :admin')
             ->setParameter('admin', $this->getUser());
 
         // Apply date filter if provided
@@ -254,12 +254,12 @@ final class AdminDashboardController extends AbstractController
 
     private function calculateCharges(\DateTime $startDate, Employee $admin): float
     {
-        // Calculate total charges from start date to now (only from employees created by this admin)
+        // Calculate total charges from start date to now (from admin's own charges OR employees created by this admin)
         $chargeRepository = $this->entityManager->getRepository(\App\Entity\Charge::class);
         $charges = $chargeRepository->createQueryBuilder('c')
             ->join('c.employee', 'e')
             ->where('c.date >= :start')
-            ->andWhere('e.createdBy = :admin')
+            ->andWhere('e.id = :admin OR e.createdBy = :admin')
             ->setParameter('start', $startDate)
             ->setParameter('admin', $admin)
             ->getQuery()
