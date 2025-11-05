@@ -47,7 +47,7 @@ final class PackageSelectionController extends AbstractController
         $entityManager->flush();
 
         // Calculate commission
-        $commissionPercentage = (float) $user->getCommissionPercentage();
+        $commissionPercentage = (float) ($user->getCommissionPercentage() ?? 0);
         $commission = $priceHt * ($commissionPercentage / 100);
 
         return new JsonResponse([
@@ -92,7 +92,7 @@ final class PackageSelectionController extends AbstractController
             $totalMonthlyRevenue += (float) $revenue->getAmountHt();
         }
 
-        $commissionPercentage = (float) $user->getCommissionPercentage();
+        $commissionPercentage = (float) ($user->getCommissionPercentage() ?? 0);
         $totalCommission = $totalMonthlyRevenue * ($commissionPercentage / 100);
 
         return new JsonResponse([

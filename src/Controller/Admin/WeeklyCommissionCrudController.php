@@ -56,13 +56,17 @@ class WeeklyCommissionCrudController extends AbstractCrudController
                 ->setRequired(true)
                 ->setNumDecimals(2)
                 ->setThousandsSeparator(' ')
-                ->setCurrency('EUR'),
+                ->formatValue(function ($value) {
+                    return number_format($value, 2, ',', ' ') . ' €';
+                }),
 
             NumberField::new('totalCommission', 'Commission Totale')
                 ->setRequired(true)
                 ->setNumDecimals(2)
                 ->setThousandsSeparator(' ')
-                ->setCurrency('EUR'),
+                ->formatValue(function ($value) {
+                    return number_format($value, 2, ',', ' ') . ' €';
+                }),
 
             NumberField::new('clientsCount', 'Nombre de Clients')
                 ->setRequired(true),
@@ -114,7 +118,8 @@ class WeeklyCommissionCrudController extends AbstractCrudController
             $commission->setValidated(true);
             $commission->setValidatedAt(new \DateTime());
 
-            $this->getDoctrine()->getManager()->flush();
+            $entityManager = $this->container->get('doctrine')->getManager();
+            $entityManager->flush();
 
             $this->addFlash('success', 'Commission validée avec succès.');
         }
@@ -130,7 +135,8 @@ class WeeklyCommissionCrudController extends AbstractCrudController
             $commission->setPaid(true);
             $commission->setPaidAt(new \DateTime());
 
-            $this->getDoctrine()->getManager()->flush();
+            $entityManager = $this->container->get('doctrine')->getManager();
+            $entityManager->flush();
 
             $this->addFlash('success', 'Commission marquée comme payée.');
         }

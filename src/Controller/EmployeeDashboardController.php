@@ -54,7 +54,7 @@ final class EmployeeDashboardController extends AbstractController
         }, 0);
 
         // Calculate commission for current month (based on HT revenue)
-        $commissionPercentage = $user->getCommissionPercentage() ?? 0;
+        $commissionPercentage = (float) ($user->getCommissionPercentage() ?? 0);
         $totalCommission = $totalMonthlyRevenue * ($commissionPercentage / 100);
 
         // Calculate today's CA HT
@@ -137,7 +137,7 @@ final class EmployeeDashboardController extends AbstractController
         $commission->setValidated(true);
         $commission->setValidatedAt(new \DateTime());
 
-        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager = $this->container->get('doctrine')->getManager();
         $entityManager->flush();
 
         return new JsonResponse(['success' => true, 'message' => 'Commission validée avec succès.']);
