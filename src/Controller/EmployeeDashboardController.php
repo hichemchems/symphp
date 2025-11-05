@@ -76,7 +76,7 @@ final class EmployeeDashboardController extends AbstractController
         // Calculate commission for each package
         $packagesWithCommission = [];
         foreach ($packages as $package) {
-            $priceHt = $package->getPrice() / 1.20; // Remove 20% TVA
+            $priceHt = $package->getPrice() / 1.20; // Price stored is TTC, so divide by 1.20 to get HT
             $commission = $priceHt * ($commissionPercentage / 100);
             $packagesWithCommission[] = [
                 'package' => $package,

@@ -32,7 +32,7 @@ final class PackageSelectionController extends AbstractController
             return new JsonResponse(['success' => false, 'message' => 'Forfait non trouvé'], 404);
         }
 
-        // Calculate HT price (remove 20% TVA)
+        // The price stored is TTC, so HT is price / 1.20
         $priceHt = (float) $package->getPrice() / 1.20;
 
         // Create revenue entry

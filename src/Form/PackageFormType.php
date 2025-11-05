@@ -23,9 +23,9 @@ class PackageFormType extends AbstractType
                 ],
             ])
             ->add('price', NumberType::class, [
-                'label' => 'Prix HT (€)',
+                'label' => 'Prix TTC (€)',
                 'constraints' => [
-                    new NotBlank(['message' => 'Le prix HT est obligatoire']),
+                    new NotBlank(['message' => 'Le prix TTC est obligatoire']),
                     new Positive(['message' => 'Le prix doit être positif']),
                 ],
             ])

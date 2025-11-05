@@ -640,8 +640,8 @@
                                     {% for package in packages %}
                                         <tr>
                                             <td>{{ package.name }}</td>
+                                            <td>{{ (package.price / 1.20)|number_format(2, ',', ' ') }} €</td>
                                             <td>{{ package.price|number_format(2, ',', ' ') }} €</td>
-                                            <td>{{ (package.price * 1.20)|number_format(2, ',', ' ') }} €</td>
                                             <td>
                                                 <button class="btn btn-sm btn-outline-primary me-1" title="Modifier">
                                                     <i class="fas fa-edit"></i>
