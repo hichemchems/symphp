@@ -146,9 +146,9 @@ final class EmployeeDashboardController extends AbstractController
     private function getCurrentWeekCommission($user, WeeklyCommissionRepository $weeklyCommissionRepository): ?object
     {
         $now = new \DateTime();
-        $lastMonday = new \DateTime('last monday');
-        $lastSunday = new \DateTime('last sunday');
+        $currentMonday = new \DateTime('monday this week');
+        $currentSunday = new \DateTime('sunday this week');
 
-        return $weeklyCommissionRepository->findByEmployeeAndWeek($user, $lastMonday, $lastSunday);
+        return $weeklyCommissionRepository->findByEmployeeAndWeek($user, $currentMonday, $currentSunday);
     }
 }

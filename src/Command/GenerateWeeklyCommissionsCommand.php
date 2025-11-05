@@ -35,23 +35,23 @@ class GenerateWeeklyCommissionsCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        // Get last week (Monday to Sunday)
+        // Get current week (Monday to Sunday)
         $now = new \DateTime();
-        $lastMonday = new \DateTime('last monday');
-        $lastSunday = new \DateTime('last sunday');
+        $currentMonday = new \DateTime('monday this week');
+        $currentSunday = new \DateTime('sunday this week');
 
         $employees = $this->employeeRepository->findAll();
 
         foreach ($employees as $employee) {
             // Check if commission already exists for this week
             $existingCommission = $this->entityManager->getRepository(WeeklyCommission::class)
-                ->findByEmployeeAndWeek($employee, $lastMonday, $lastSunday);
+                ->findByEmployeeAndWeek($employee, $currentMonday, $currentSunday);
 
             if ($existingCommission) {
                 $io->note(sprintf('Commission already exists for employee %s for week %s to %s',
                     $employee->getFirstName() . ' ' . $employee->getLastName(),
-                    $lastMonday->format('Y-m-d'),
-                    $lastSunday->format('Y-m-d')
+                    $currentMonday->format('Y-m-d'),
+                    $currentSunday->format('Y-m-d')
                 ));
                 continue;
             }
@@ -61,8 +61,8 @@ class GenerateWeeklyCommissionsCommand extends Command
                 ->where('r.employee = :employee')
                 ->andWhere('r.date >= :start AND r.date <= :end')
                 ->setParameter('employee', $employee)
-                ->setParameter('start', $lastMonday)
-                ->setParameter('end', $lastSunday)
+                ->setParameter('start', $currentMonday)
+                ->setParameter('end', $currentSunday)
                 ->getQuery()
                 ->getResult();
 
@@ -83,8 +83,8 @@ class GenerateWeeklyCommissionsCommand extends Command
             $weeklyCommission->setTotalCommission((string) $totalCommission);
             $weeklyCommission->setTotalRevenueHt((string) $revenueHt);
             $weeklyCommission->setClientsCount($clientsCount);
-            $weeklyCommission->setWeekStart($lastMonday);
-            $weeklyCommission->setWeekEnd($lastSunday);
+            $weeklyCommission->setWeekStart($currentMonday);
+            $weeklyCommission->setWeekEnd($currentSunday);
             $weeklyCommission->setValidated(false);
             $weeklyCommission->setPaid(false);
 
