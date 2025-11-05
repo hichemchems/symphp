@@ -939,6 +939,7 @@
                             <table class="table table-hover">
                                 <thead>
                                     <tr>
+                                        <th>Nom</th>
                                         <th>Description</th>
                                         <th>Montant</th>
                                         <th>Date</th>
@@ -948,6 +949,7 @@
                                 <tbody>
                                     {% for charge in charges %}
                                         <tr>
+                                            <td>{{ charge.name }}</td>
                                             <td>{{ charge.description }}</td>
                                             <td>{{ charge.amount|number_format(2, ',', ' ') }} €</td>
                                             <td>{{ charge.date|date('d/m/Y') }}</td>
@@ -980,6 +982,13 @@
                 </div>
                 <div class="modal-body">
                     {{ form_start(chargeForm) }}
+                        <div class="form-group">
+                            {{ form_label(chargeForm.name) }}
+                            {{ form_widget(chargeForm.name, {'attr': {'class': 'form-control'}}) }}
+                            {% if form_errors(chargeForm.name) %}
+                                <div class="text-danger small">{{ form_errors(chargeForm.name) }}</div>
+                            {% endif %}
+                        </div>
                         <div class="form-group">
                             {{ form_label(chargeForm.description) }}
                             {{ form_widget(chargeForm.description, {'attr': {'class': 'form-control'}}) }}

@@ -17,6 +17,12 @@ class ChargeFormType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            ->add('name', TextType::class, [
+                'label' => 'Nom',
+                'constraints' => [
+                    new NotBlank(['message' => 'Le nom est obligatoire']),
+                ],
+            ])
             ->add('description', TextType::class, [
                 'label' => 'Description',
                 'constraints' => [
