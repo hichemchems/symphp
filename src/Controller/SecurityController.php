@@ -18,20 +18,9 @@ class SecurityController extends AbstractController
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        // Determine target path based on user role (if logged in)
-        $targetPath = '/admin/dashboard'; // default for admin
-        if ($this->getUser()) {
-            if (in_array('ROLE_ADMIN', $this->getUser()->getRoles())) {
-                $targetPath = '/admin/dashboard';
-            } elseif (in_array('ROLE_EMPLOYEE', $this->getUser()->getRoles())) {
-                $targetPath = '/employee/dashboard';
-            }
-        }
-
         return $this->render('security/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $error,
-            'target_path' => $targetPath,
         ]);
     }
 

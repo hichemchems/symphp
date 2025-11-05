@@ -27,9 +27,7 @@ security:
                 login_path: app_login
                 check_path: app_login
                 enable_csrf: true
-                default_target_path: /admin/dashboard
-                always_use_default_target_path: false
-                target_path_parameter: _target_path
+                success_handler: app.login_success_handler
             logout:
                 path: app_logout
                 # where to redirect after logout
