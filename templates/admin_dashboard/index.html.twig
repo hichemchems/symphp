@@ -104,7 +104,7 @@
     transform: rotate(90deg);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 850px) {
     .action-buttons {
         position: fixed;
         top: 0;
@@ -158,6 +158,282 @@
 
     .mobile-overlay.active {
         display: block;
+    }
+}
+@media (max-width: 850px) {
+    .employee-cards {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 850px) {
+    .modal-dialog {
+        margin: 0;
+        width: 100vw;
+        max-width: none;
+    }
+
+    .stats-overview {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .period-selector .btn-group {
+        display: flex;
+        flex-direction: column;
+        width: 90%;
+        margin: 0 auto;
+    }
+
+    .period-selector .btn {
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+
+    .stats-content .row .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+.employee-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .employee-cards {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+}
+
+.employee-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    border-left: 4px solid #3498db;
+    transition: transform 0.2s ease;
+}
+
+.employee-card:hover {
+    transform: translateY(-2px);
+}
+
+.employee-card h6 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.employee-stat {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.employee-stat-label {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.employee-stat-value {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.employee-status {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.employee-status.active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.employee-status.inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .modal-dialog {
+        margin: 0;
+        width: 100vw;
+        max-width: none;
+    }
+
+    .stats-overview {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .period-selector .btn-group {
+        display: flex;
+        flex-direction: column;
+        width: 90%;
+        margin: 0 auto;
+    }
+
+    .period-selector .btn {
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+
+    .stats-content .row .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+=======
+.employee-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.employee-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    border-left: 4px solid #3498db;
+    transition: transform 0.2s ease;
+}
+
+.employee-card:hover {
+    transform: translateY(-2px);
+}
+
+.employee-card h6 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.employee-stat {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.employee-stat-label {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.employee-stat-value {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.employee-status {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.employee-status.active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.employee-status.inactive {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+=======
+@media (max-width: 850px) {
+    .employee-cards {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+}
+<<<<<<< SEARCH
+@media (max-width: 768px) {
+    .modal-dialog {
+        margin: 0;
+        width: 100vw;
+        max-width: none;
+    }
+
+    .stats-overview {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .period-selector .btn-group {
+        display: flex;
+        flex-direction: column;
+        width: 90%;
+        margin: 0 auto;
+    }
+
+    .period-selector .btn {
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+
+    .stats-content .row .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+=======
+@media (max-width: 850px) {
+    .modal-dialog {
+        margin: 0;
+        width: 100vw;
+        max-width: none;
+    }
+
+    .stats-overview {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .period-selector .btn-group {
+        display: flex;
+        flex-direction: column;
+        width: 90%;
+        margin: 0 auto;
+    }
+
+    .period-selector .btn {
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+
+    .stats-content .row .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
     }
 }
 
