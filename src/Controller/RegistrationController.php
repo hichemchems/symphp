@@ -38,7 +38,7 @@ class RegistrationController extends AbstractController
             $user->setPassword($userPasswordHasher->hashPassword($user, $plainPassword));
 
             // Set admin role and mark as verified for registration (only admins can register)
-            $user->setRoles(['ROLE_ADMIN']);
+            $user->setRoles(['ROLE_ADMIN', 'ROLE_USER']);
             $user->setIsVerified(true);
 
             // Initialize revenue statistics to zero for new admin

@@ -50,7 +50,7 @@ final class AdminDashboardController extends AbstractController
             $employee->setPassword($hashedPassword);
 
             // Set employee role
-            $employee->setRoles(['ROLE_EMPLOYEE']);
+            $employee->setRoles(['ROLE_EMPLOYEE', 'ROLE_USER']);
 
             // Set verified to true for admin-created employees
             $employee->setIsVerified(true);
