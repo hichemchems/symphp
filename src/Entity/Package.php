@@ -24,10 +24,10 @@ class Package
     #[ORM\Column(type: 'text', nullable: true)]
     private ?string $description = null;
 
-    #[ORM\OneToMany(mappedBy: 'package', targetEntity: Appointment::class)]
+    #[ORM\OneToMany(mappedBy: 'package', targetEntity: Appointment::class, cascade: ['remove'])]
     private Collection $appointments;
 
-    #[ORM\OneToMany(mappedBy: 'package', targetEntity: Revenue::class)]
+    #[ORM\OneToMany(mappedBy: 'package', targetEntity: Revenue::class, cascade: ['remove'])]
     private Collection $revenues;
 
     public function __construct()

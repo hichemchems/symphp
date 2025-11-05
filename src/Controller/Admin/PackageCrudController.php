@@ -34,10 +34,7 @@ class PackageCrudController extends AbstractCrudController
     public function configureActions(Actions $actions): Actions
     {
         return $actions
-            // Désactiver la suppression pour éviter les contraintes de clés étrangères
-            ->disable(Action::DELETE)
-            ->disable(Action::BATCH_DELETE)
-            // Garder les autres actions (voir, éditer, créer)
+            // Réactiver la suppression avec cascade remove
             ->add(Action::INDEX, Action::DETAIL);
     }
 }

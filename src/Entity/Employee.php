@@ -113,6 +113,11 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    /**
+     * Get the commission percentage for this employee
+     *
+     * @return string|null The commission percentage (e.g., "10.00" for 10%)
+     */
     public function getCommissionPercentage(): ?string
     {
         return $this->commissionPercentage;
@@ -195,7 +200,9 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, Revenue>
+     * Get all revenues associated with this employee
+     *
+     * @return Collection<int, Revenue> Collection of Revenue entities
      */
     public function getRevenues(): Collection
     {
