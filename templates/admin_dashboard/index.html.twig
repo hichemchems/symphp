@@ -517,12 +517,15 @@
                                                 {% endif %}
                                             </td>
                                             <td>
-                                                <button class="btn btn-sm btn-outline-primary me-1" title="Modifier">
+                                                <a href="{{ path('app_admin_employee_edit', {'id': employee.id}) }}" class="btn btn-sm btn-outline-primary me-1" title="Modifier">
                                                     <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-danger" title="Supprimer">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
+                                                </a>
+                                                <form method="post" action="{{ path('app_admin_employee_delete', {'id': employee.id}) }}" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet employé ?')">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ employee.id) }}">
+                                                    <button class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
                                             </td>
                                         </tr>
                                     {% endfor %}

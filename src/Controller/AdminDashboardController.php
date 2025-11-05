@@ -312,4 +312,52 @@ final class AdminDashboardController extends AbstractController
             'clients' => $clientCount,
         ];
     }
+
+    #[Route('/admin/employee/{id}/edit', name: 'app_admin_employee_edit', methods: ['GET', 'POST'])]
+    public function editEmployee(Request $request, Employee $employee, UserPasswordHasherInterface $passwordHasher): Response
+    {
+        // Check if employee belongs to current admin
+        if ($employee->getCreatedBy() !== $this->getUser()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        $form = $this->createForm(EmployeeFormType::class, $employee);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            // Hash password if changed
+            $plainPassword = $form->get('plainPassword')->getData();
+            if ($plainPassword) {
+                $employee->setPassword($passwordHasher->hashPassword($employee, $plainPassword));
+            }
+
+            $this->entityManager->flush();
+
+            $this->addFlash('success', 'Employé modifié avec succès !');
+            return $this->redirectToRoute('app_admin_dashboard');
+        }
+
+        return $this->render('admin_dashboard/edit_employee.html.twig', [
+            'employee' => $employee,
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/admin/employee/{id}/delete', name: 'app_admin_employee_delete', methods: ['POST'])]
+    public function deleteEmployee(Request $request, Employee $employee): Response
+    {
+        // Check if employee belongs to current admin
+        if ($employee->getCreatedBy() !== $this->getUser()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        if ($this->isCsrfTokenValid('delete'.$employee->getId(), $request->request->get('_token'))) {
+            $this->entityManager->remove($employee);
+            $this->entityManager->flush();
+
+            $this->addFlash('success', 'Employé supprimé avec succès !');
+        }
+
+        return $this->redirectToRoute('app_admin_dashboard');
+    }
 }
