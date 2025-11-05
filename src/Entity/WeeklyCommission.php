@@ -7,6 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: WeeklyCommissionRepository::class)]
+#[ORM\Table(name: "weekly_commissions")]
 class WeeklyCommission
 {
     #[ORM\Id]
