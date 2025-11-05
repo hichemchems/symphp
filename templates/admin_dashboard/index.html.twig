@@ -588,7 +588,7 @@
                                     {% for appointment in recentAppointments %}
                                         <tr>
                                             <td>{{ appointment.date|date('d/m/Y H:i') }}</td>
-                                            <td>{{ (appointment.package.price * 1.20)|number_format(2, ',', ' ') }} €</td>
+                                            <td>{{ appointment.package.price|number_format(2, ',', ' ') }} €</td>
                                             <td>{{ appointment.employee.firstName }} {{ appointment.employee.lastName }}</td>
                                             <td>
                                                 <button class="btn btn-sm btn-outline-primary me-1" title="Modifier">
