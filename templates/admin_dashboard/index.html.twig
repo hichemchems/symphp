@@ -237,9 +237,32 @@
 }
 
 @media (max-width: 768px) {
+    .modal-dialog {
+        margin: 0;
+        width: 100vw;
+        max-width: none;
+    }
+
     .stats-overview {
         grid-template-columns: 1fr;
         gap: 0.5rem;
+    }
+
+    .period-selector .btn-group {
+        display: flex;
+        flex-direction: column;
+        width: 90%;
+        margin: 0 auto;
+    }
+
+    .period-selector .btn {
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+
+    .stats-content .row .col-md-6 {
+        flex: 0 0 100%;
+        max-width: 100%;
     }
 }
 
