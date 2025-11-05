@@ -16,7 +16,7 @@ class WeeklyCommissionRepository extends ServiceEntityRepository
         parent::__construct($registry, WeeklyCommission::class);
     }
 
-    public function findByEmployeeAndWeek(Employee $employee, \DateTime $weekStart, \DateTime $weekEnd): ?WeeklyCommission
+    public function findByEmployeeAndWeek(\App\Entity\Employee $employee, \DateTime $weekStart, \DateTime $weekEnd): ?WeeklyCommission
     {
         return $this->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
