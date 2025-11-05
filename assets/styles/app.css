@@ -3,6 +3,8 @@ body {
     color: rgb(250, 250, 249);
 }
 
+
+
 @media (max-width: 850px), (max-device-width: 850px) {
     body {
         font-size: 1.4rem !important;
