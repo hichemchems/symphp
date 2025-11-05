@@ -10,6 +10,89 @@
     border-color: #5e6a74ff !important;
     width: 100% !important;
 }
+
+/* Mobile Responsiveness */
+@media (max-width: 850px) {
+    .container-fluid {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    .stats-card {
+        margin-bottom: 1rem;
+        height: auto !important;
+        min-height: 150px;
+    }
+
+    .row.mb-4.justify-content-center.align-items-center {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .col-md-4 {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .card.bg-primary, .card.bg-success, .card.bg-info {
+        width: 100%;
+    }
+
+    .package-card {
+        margin-bottom: 1rem;
+    }
+
+    .col-md-6 {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-bottom: 1rem;
+    }
+
+    .btn.btn-success.btn-lg.w-100, .btn.btn-info.btn-lg.w-100 {
+        margin-bottom: 1rem;
+    }
+
+    .table-responsive {
+        font-size: 0.9rem;
+    }
+
+    .table-responsive th, .table-responsive td {
+        padding: 0.5rem;
+    }
+
+    .modal-dialog {
+        margin: 0;
+        width: 100vw;
+        max-width: none;
+    }
+
+    .modal-content {
+        border-radius: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5rem !important;
+    }
+
+    .card-title {
+        font-size: 1rem;
+    }
+
+    .card-text {
+        font-size: 1.2rem;
+    }
+
+    .btn {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+}
 </style>
 {% endblock %}
 
