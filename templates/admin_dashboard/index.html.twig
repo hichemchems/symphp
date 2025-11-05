@@ -640,9 +640,6 @@
         <h1 class="text-white">🪒 Easy Gestion Barber</h1>
         <p class="text-white">Tableau de bord administrateur</p>
     </div>
-    <a href="{{ path('app_logout') }}" class="logout-btn">
-        <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
-    </a>
 </div>
 
 <div class="container">
@@ -677,6 +674,10 @@
         <a href="{{ path('admin_charge_index') }}" class="action-btn">
             <i class="fas fa-euro-sign"></i>
             <h5>Gérer les Charges</h5>
+        </a>
+        <a href="{{ path('app_logout') }}" class="action-btn logout-action-btn">
+            <i class="fas fa-sign-out-alt"></i>
+            <h5>Déconnexion</h5>
         </a>
     </div>
 
