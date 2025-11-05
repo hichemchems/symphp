@@ -6,7 +6,10 @@ use App\Repository\AppointmentRepository;
 use App\Repository\PackageRepository;
 use App\Repository\RevenueRepository;
 use App\Repository\StatisticsRepository;
+use App\Repository\WeeklyCommissionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -15,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class EmployeeDashboardController extends AbstractController
 {
     #[Route('/employee/dashboard', name: 'app_employee_dashboard')]
-    public function index(AppointmentRepository $appointmentRepository, RevenueRepository $revenueRepository, PackageRepository $packageRepository, StatisticsRepository $statisticsRepository): Response
+    public function index(AppointmentRepository $appointmentRepository, RevenueRepository $revenueRepository, PackageRepository $packageRepository, StatisticsRepository $statisticsRepository, WeeklyCommissionRepository $weeklyCommissionRepository): Response
     {
         $user = $this->getUser();
 
@@ -98,6 +101,9 @@ final class EmployeeDashboardController extends AbstractController
             12 // Last 12 months
         );
 
+        // Get current week commission for validation
+        $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
+
         return $this->render('employee_dashboard/index.html.twig', [
             'todayAppointments' => $todayAppointments,
             'recentRevenues' => $recentRevenues,
@@ -108,6 +114,41 @@ final class EmployeeDashboardController extends AbstractController
             'packagesWithCommission' => $packagesWithCommission,
             'weeklyStats' => $weeklyStats,
             'monthlyStats' => $monthlyStats,
+            'currentWeekCommission' => $currentWeekCommission,
         ]);
+    }
+
+    #[Route('/employee/validate-commission', name: 'app_employee_validate_commission', methods: ['POST'])]
+    public function validateCommission(Request $request, WeeklyCommissionRepository $weeklyCommissionRepository): JsonResponse
+    {
+        $commissionId = $request->request->get('commission_id');
+        $user = $this->getUser();
+
+        $commission = $weeklyCommissionRepository->find($commissionId);
+
+        if (!$commission || $commission->getEmployee() !== $user) {
+            return new JsonResponse(['success' => false, 'message' => 'Commission non trouvée ou accès non autorisé.']);
+        }
+
+        if ($commission->isValidated()) {
+            return new JsonResponse(['success' => false, 'message' => 'Cette commission est déjà validée.']);
+        }
+
+        $commission->setValidated(true);
+        $commission->setValidatedAt(new \DateTime());
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Commission validée avec succès.']);
+    }
+
+    private function getCurrentWeekCommission($user, WeeklyCommissionRepository $weeklyCommissionRepository): ?object
+    {
+        $now = new \DateTime();
+        $lastMonday = new \DateTime('last monday');
+        $lastSunday = new \DateTime('last sunday');
+
+        return $weeklyCommissionRepository->findByEmployeeAndWeek($user, $lastMonday, $lastSunday);
     }
 }
