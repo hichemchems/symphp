@@ -13,6 +13,22 @@
     position: relative;
 }
 
+@media (max-width: 850px) {
+    .dashboard-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        margin-bottom: 0;
+        z-index: 1000;
+        border-radius: 0;
+    }
+
+    .container {
+        padding-top: 6rem;
+    }
+}
+
 .logout-btn {
     position: absolute;
     top: 1rem;
@@ -661,10 +677,6 @@
 </div>
 
 <div class="container">
-    <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" id="mobileMenuToggle">
-        <i class="fas fa-bars"></i>
-    </button>
     <div class="mobile-overlay" id="mobileOverlay"></div>
 
     <!-- Action Buttons -->
