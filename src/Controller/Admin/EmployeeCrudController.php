@@ -63,10 +63,7 @@ class EmployeeCrudController extends AbstractCrudController
     {
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
-            ->add(Crud::PAGE_EDIT, Action::SAVE_AND_ADD_ANOTHER)
-            // Désactiver la suppression pour éviter les contraintes de clés étrangères
-            ->disable(Action::DELETE)
-            ->disable(Action::BATCH_DELETE);
+            ->add(Crud::PAGE_EDIT, Action::SAVE_AND_ADD_ANOTHER);
     }
 
     public function persistEntity(EntityManagerInterface $entityManager, $entityInstance): void

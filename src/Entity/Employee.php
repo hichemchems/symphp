@@ -44,10 +44,10 @@ class Employee implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\JoinColumn(nullable: true)]
     private ?Employee $createdBy = null;
 
-    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Appointment::class)]
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Appointment::class, cascade: ['remove'])]
     private Collection $appointments;
 
-    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Revenue::class)]
+    #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Revenue::class, cascade: ['remove'])]
     private Collection $revenues;
 
     #[ORM\OneToMany(mappedBy: 'employee', targetEntity: Charge::class)]
