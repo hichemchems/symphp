@@ -10,6 +10,27 @@
     padding: 2rem 0;
     margin-bottom: 2rem;
     border-radius: 10px;
+    position: relative;
+}
+
+.logout-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+    text-decoration: none;
 }
 
 .dashboard-header h1 {
@@ -316,6 +337,9 @@
         <h1 class="text-white">🪒 Easy Gestion Barber</h1>
         <p class="text-white">Tableau de bord administrateur</p>
     </div>
+    <a href="{{ path('app_logout') }}" class="logout-btn">
+        <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+    </a>
 </div>
 
 <div class="container">
