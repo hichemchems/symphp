@@ -190,12 +190,27 @@ final class AdminDashboardController extends AbstractController
         // Get all packages
         $packages = $packageRepository->findAll();
 
-        // Get all charges (only from employees created by this admin)
-        $charges = $this->entityManager->getRepository(Charge::class)->createQueryBuilder('c')
+        // Get all charges (only from employees created by this admin) with optional date filtering
+        $chargesQuery = $this->entityManager->getRepository(Charge::class)->createQueryBuilder('c')
             ->join('c.employee', 'e')
             ->where('e.createdBy = :admin')
-            ->setParameter('admin', $this->getUser())
-            ->orderBy('c.date', 'DESC')
+            ->setParameter('admin', $this->getUser());
+
+        // Apply date filter if provided
+        $startDate = $request->query->get('start_date');
+        $endDate = $request->query->get('end_date');
+
+        if ($startDate) {
+            $chargesQuery->andWhere('c.date >= :startDate')
+                ->setParameter('startDate', new \DateTime($startDate));
+        }
+
+        if ($endDate) {
+            $chargesQuery->andWhere('c.date <= :endDate')
+                ->setParameter('endDate', new \DateTime($endDate . ' 23:59:59'));
+        }
+
+        $charges = $chargesQuery->orderBy('c.date', 'DESC')
             ->getQuery()
             ->getResult();
 
