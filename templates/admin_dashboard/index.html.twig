@@ -15,18 +15,23 @@
 
 @media (max-width: 850px) {
     .dashboard-header {
-        position: fixed;
+       
         top: 0;
         left: 0;
         width: 100%;
         margin-bottom: 0;
         z-index: 1000;
         border-radius: 0;
+        display: grid;
+        grid-template-columns: 120fr 1fr;
     }
 
     .container {
-        padding-top: 6rem;
+        padding-top:1% !important;
     }
+
+
+
 }
 
 .logout-btn {
@@ -50,7 +55,7 @@
 }
 
 .dashboard-header h1 {
-    font-size: 2.5rem;
+    font-size: 2.3rem;
     font-weight: 300;
     margin-bottom: 0.5rem;
     text-align: center;
@@ -152,13 +157,16 @@
 
     .mobile-menu-toggle {
         display: block;
-        position: fixed;
+        /* position: fixed; */
         top: 1rem;
         right: 1rem;
         z-index: 1001;
-        background: white;
-        border-radius: 50%;
+        background: #d4d5d7c4;
+        border-radius: 20pt;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        height: 10vh;
+        display: flex;
+        margin: 1%;
     }
 
     .mobile-overlay {
@@ -288,7 +296,7 @@
     margin-bottom: 2rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 850px) {
     .modal-dialog {
         margin: 0;
         width: 100vw;
