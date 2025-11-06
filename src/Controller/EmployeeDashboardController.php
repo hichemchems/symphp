@@ -43,10 +43,10 @@ final class EmployeeDashboardController extends AbstractController
         $endOfMonth = new \DateTime('last day of this month');
         $monthlyRevenues = $revenueRepository->createQueryBuilder('r')
             ->where('r.employee = :employee')
-            ->andWhere('DATE(r.date) >= DATE(:start) AND DATE(r.date) <= DATE(:end)')
+            ->andWhere('r.date >= :start AND r.date <= :end')
             ->setParameter('employee', $user)
-            ->setParameter('start', $startOfMonth->format('Y-m-d'))
-            ->setParameter('end', $endOfMonth->format('Y-m-d'))
+            ->setParameter('start', $startOfMonth)
+            ->setParameter('end', $endOfMonth)
             ->getQuery()
             ->getResult();
 
@@ -162,6 +162,7 @@ final class EmployeeDashboardController extends AbstractController
 
         $commission->setValidated(true);
         $commission->setValidatedAt(new \DateTime());
+        $commission->setTotalCommission('0.00');
 
         $entityManager->flush();
 

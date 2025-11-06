@@ -52,15 +52,6 @@ class GenerateWeeklyCommissionsCommand extends Command
                 continue;
             }
 
-            // If commission exists but not validated, update it
-            if ($existingCommission && !$existingCommission->isValidated()) {
-                $io->note(sprintf('Updating existing commission for employee %s for week %s to %s',
-                    $employee->getFirstName() . ' ' . $employee->getLastName(),
-                    $currentMonday->format('Y-m-d'),
-                    $currentSunday->format('Y-m-d')
-                ));
-            }
-
             // Calculate weekly revenue HT and client count
             $weeklyRevenues = $this->revenueRepository->createQueryBuilder('r')
                 ->where('r.employee = :employee')
@@ -82,24 +73,37 @@ class GenerateWeeklyCommissionsCommand extends Command
             $commissionPercentage = (float) ($employee->getCommissionPercentage() ?? 0);
             $totalCommission = $revenueHt * ($commissionPercentage / 100);
 
-            // Create weekly commission entry
-            $weeklyCommission = new WeeklyCommission();
-            $weeklyCommission->setEmployee($employee);
-            $weeklyCommission->setTotalCommission((string) $totalCommission);
-            $weeklyCommission->setTotalRevenueHt((string) $revenueHt);
-            $weeklyCommission->setClientsCount($clientsCount);
-            $weeklyCommission->setWeekStart($currentMonday);
-            $weeklyCommission->setWeekEnd($currentSunday);
-            $weeklyCommission->setValidated(false);
-            $weeklyCommission->setPaid(false);
+            if ($existingCommission && !$existingCommission->isValidated()) {
+                // Update existing non-validated commission
+                $existingCommission->setTotalCommission((string) $totalCommission);
+                $existingCommission->setTotalRevenueHt((string) $revenueHt);
+                $existingCommission->setClientsCount($clientsCount);
 
-            $this->entityManager->persist($weeklyCommission);
+                $io->note(sprintf('Updated commission for employee %s: €%s for %d clients',
+                    $employee->getFirstName() . ' ' . $employee->getLastName(),
+                    number_format($totalCommission, 2, ',', ' '),
+                    $clientsCount
+                ));
+            } else {
+                // Create new commission entry if none exists or if existing is validated
+                $weeklyCommission = new WeeklyCommission();
+                $weeklyCommission->setEmployee($employee);
+                $weeklyCommission->setTotalCommission((string) $totalCommission);
+                $weeklyCommission->setTotalRevenueHt((string) $revenueHt);
+                $weeklyCommission->setClientsCount($clientsCount);
+                $weeklyCommission->setWeekStart($currentMonday);
+                $weeklyCommission->setWeekEnd($currentSunday);
+                $weeklyCommission->setValidated(false);
+                $weeklyCommission->setPaid(false);
 
-            $io->success(sprintf('Created commission for employee %s: €%s for %d clients',
-                $employee->getFirstName() . ' ' . $employee->getLastName(),
-                number_format($totalCommission, 2, ',', ' '),
-                $clientsCount
-            ));
+                $this->entityManager->persist($weeklyCommission);
+
+                $io->success(sprintf('Created commission for employee %s: €%s for %d clients',
+                    $employee->getFirstName() . ' ' . $employee->getLastName(),
+                    number_format($totalCommission, 2, ',', ' '),
+                    $clientsCount
+                ));
+            }
         }
 
         $this->entityManager->flush();
