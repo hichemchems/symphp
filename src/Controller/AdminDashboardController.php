@@ -311,10 +311,8 @@ final class AdminDashboardController extends AbstractController
 
     private function getEmployeeStats(\App\Entity\Employee $employee, \DateTime $startDate, \DateTime $endDate, EntityManagerInterface $entityManager): array
     {
-        // Get revenue data from Revenue entity for the period (current month)
+        // Get revenue data from Revenue entity for the period
         $revenueRepository = $entityManager->getRepository(\App\Entity\Revenue::class);
-        $endDate = clone $startDate;
-        $endDate->modify('last day of this month');
         $revenues = $revenueRepository->createQueryBuilder('r')
             ->where('r.employee = :employee')
             ->andWhere('r.date BETWEEN :start AND :end')
@@ -405,15 +403,17 @@ final class AdminDashboardController extends AbstractController
         // Calculate daily stats (today)
         $today = new \DateTime('today');
         $tomorrow = new \DateTime('tomorrow');
-        $dailyStats = $this->getEmployeeStats($employee, $today, $entityManager);
+        $dailyStats = $this->getEmployeeStats($employee, $today, $tomorrow, $entityManager);
 
         // Calculate weekly stats (current week)
         $weekStart = new \DateTime('monday this week');
-        $weeklyStats = $this->getEmployeeStats($employee, $weekStart, $entityManager);
+        $weekEnd = new \DateTime('sunday this week');
+        $weeklyStats = $this->getEmployeeStats($employee, $weekStart, $weekEnd, $entityManager);
 
         // Calculate monthly stats (current month)
         $monthStart = new \DateTime('first day of this month');
-        $monthlyStats = $this->getEmployeeStats($employee, $monthStart, $entityManager);
+        $monthEnd = new \DateTime('last day of this month');
+        $monthlyStats = $this->getEmployeeStats($employee, $monthStart, $monthEnd, $entityManager);
 
         return $this->render('admin_dashboard/employee_details.html.twig', [
             'employee' => $employee,
