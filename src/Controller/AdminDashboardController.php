@@ -378,6 +378,8 @@ final class AdminDashboardController extends AbstractController
     #[Route('/admin/employee/{id}/details', name: 'app_admin_employee_details')]
     public function employeeDetails(Employee $employee, EntityManagerInterface $entityManager): Response
     {
+        $this->entityManager = $entityManager;
+
         // Check if employee belongs to current admin
         if ($employee->getCreatedBy() !== $this->getUser()) {
             throw $this->createAccessDeniedException();
