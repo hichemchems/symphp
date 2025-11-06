@@ -32,7 +32,7 @@ final class EmployeeDashboardController extends AbstractController
             'date' => [$today, $tomorrow]
         ], ['date' => 'ASC']);
 
-        // Get all revenues for the employee (remove limit to show all)
+        // Get all revenues for the employee (remove limit to show all 14)
         $recentRevenues = $revenueRepository->findBy(
             ['employee' => $user],
             ['date' => 'DESC']
@@ -54,27 +54,25 @@ final class EmployeeDashboardController extends AbstractController
             return $sum + $revenue->getAmountHt(); // Use HT for commission calculation
         }, 0);
 
-        // Calculate commission for current month (based on HT revenue)
+        // Get commission percentage
         $commissionPercentage = (float) ($user->getCommissionPercentage() ?? 0);
-        $totalCommission = $totalMonthlyRevenue * ($commissionPercentage / 100);
 
-        // Get validated commissions for current month
-        $validatedCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+        // Calculate commission for current month (sum of unvalidated weekly commissions)
+        $unvalidatedCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
-            ->andWhere('wc.validated = true')
-            ->andWhere('wc.weekStart >= :monthStart')
+            ->andWhere('wc.validated = false')
+            ->andWhere('wc.weekStart >= :startOfMonth')
             ->setParameter('employee', $user)
-            ->setParameter('monthStart', $startOfMonth)
+            ->setParameter('startOfMonth', $startOfMonth)
             ->getQuery()
             ->getResult();
 
-        $totalValidatedCommission = 0;
-        foreach ($validatedCommissions as $commission) {
-            $totalValidatedCommission += (float) $commission->getTotalCommission();
-        }
+        $totalCommission = array_reduce($unvalidatedCommissions, function($sum, $commission) {
+            return $sum + (float)$commission->getTotalCommission();
+        }, 0);
 
-        // Calculate pending commission (total commission minus validated commission)
-        $pendingCommission = $totalCommission - $totalValidatedCommission;
+        // Calculate pending commission (same as totalCommission for now)
+        $pendingCommission = $totalCommission;
 
         // Get client count for current month
         $monthlyClientCount = count($monthlyRevenues);

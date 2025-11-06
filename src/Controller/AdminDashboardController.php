@@ -324,14 +324,28 @@ final class AdminDashboardController extends AbstractController
 
         $totalRevenue = 0;
         $totalRevenueHt = 0;
-        $totalCommission = 0;
         $clientCount = count($revenues);
 
         foreach ($revenues as $revenue) {
             $totalRevenueHt += (float) $revenue->getAmountHt();
             $totalRevenue += (float) $revenue->getAmountTtc();
-            $commission = ((float) $revenue->getAmountTtc() * $employee->getCommissionPercentage()) / 100;
-            $totalCommission += $commission;
+        }
+
+        // Calculate commission from weekly commissions for the period
+        $weeklyCommissionRepository = $entityManager->getRepository(\App\Entity\WeeklyCommission::class);
+        $weeklyCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+            ->where('wc.employee = :employee')
+            ->andWhere('wc.weekStart >= :start')
+            ->andWhere('wc.weekEnd <= :end')
+            ->setParameter('employee', $employee)
+            ->setParameter('start', $startDate)
+            ->setParameter('end', $endDate)
+            ->getQuery()
+            ->getResult();
+
+        $totalCommission = 0;
+        foreach ($weeklyCommissions as $commission) {
+            $totalCommission += (float) $commission->getTotalCommission();
         }
 
         return [
@@ -432,7 +446,7 @@ final class AdminDashboardController extends AbstractController
             ['date' => 'DESC']
         );
 
-        // Get validation history
+        // Get validation history (validated commissions)
         $validatedCommissions = $entityManager->getRepository(\App\Entity\WeeklyCommission::class)->findBy(
             ['employee' => $employee, 'validated' => true],
             ['validatedAt' => 'DESC']
