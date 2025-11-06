@@ -32,11 +32,10 @@ final class EmployeeDashboardController extends AbstractController
             'date' => [$today, $tomorrow]
         ], ['date' => 'ASC']);
 
-        // Get recent revenues for the employee
+        // Get all revenues for the employee (remove limit to show all)
         $recentRevenues = $revenueRepository->findBy(
             ['employee' => $user],
-            ['date' => 'DESC'],
-            10
+            ['date' => 'DESC']
         );
 
         // Calculate total revenue for current month
@@ -73,6 +72,12 @@ final class EmployeeDashboardController extends AbstractController
         foreach ($validatedCommissions as $commission) {
             $totalValidatedCommission += (float) $commission->getTotalCommission();
         }
+
+        // Calculate pending commission (total commission minus validated commission)
+        $pendingCommission = $totalCommission - $totalValidatedCommission;
+
+        // Get client count for current month
+        $monthlyClientCount = count($monthlyRevenues);
 
         // Calculate today's CA HT
         $today = new \DateTime('today');
@@ -129,8 +134,10 @@ final class EmployeeDashboardController extends AbstractController
             'recentRevenues' => $recentRevenues,
             'totalMonthlyRevenue' => $totalMonthlyRevenue,
             'totalCommission' => $totalCommission,
+            'pendingCommission' => $pendingCommission,
             'commissionPercentage' => $commissionPercentage,
             'totalCaHt' => $totalCaHt,
+            'monthlyClientCount' => $monthlyClientCount,
             'packagesWithCommission' => $packagesWithCommission,
             'weeklyStats' => $weeklyStats,
             'monthlyStats' => $monthlyStats,

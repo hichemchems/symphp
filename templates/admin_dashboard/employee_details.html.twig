@@ -52,6 +52,48 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Validation History -->
+                    <div class="mt-4">
+                        <h4>Historique des Validations de Commissions</h4>
+                        {% if validatedCommissions is empty %}
+                            <p class="text-muted">Aucune commission validée pour cet employé.</p>
+                        {% else %}
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Semaine</th>
+                                            <th>Revenus HT</th>
+                                            <th>Commission</th>
+                                            <th>Clients</th>
+                                            <th>Validée le</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for commission in validatedCommissions %}
+                                            <tr>
+                                                <td>{{ commission.weekStart|date('d/m/Y') }} - {{ commission.weekEnd|date('d/m/Y') }}</td>
+                                                <td>{{ commission.totalRevenueHt|number_format(2, ',', ' ') }} €</td>
+                                                <td>{{ commission.totalCommission|number_format(2, ',', ' ') }} €</td>
+                                                <td>{{ commission.clientsCount }}</td>
+                                                <td>{{ commission.validatedAt|date('d/m/Y H:i') }}</td>
+                                                <td>
+                                                    {% if commission.isPaid() %}
+                                                        <span class="badge bg-success">Payée</span>
+                                                    {% else %}
+                                                        <span class="badge bg-warning">En attente de paiement</span>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
+                    </div>
+
                     <div class="mt-4">
                         <a href="{{ path('app_admin_dashboard') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord

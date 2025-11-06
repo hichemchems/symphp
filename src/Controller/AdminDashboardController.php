@@ -415,11 +415,18 @@ final class AdminDashboardController extends AbstractController
         $monthEnd = new \DateTime('last day of this month');
         $monthlyStats = $this->getEmployeeStats($employee, $monthStart, $monthEnd, $entityManager);
 
+        // Get validation history
+        $validatedCommissions = $entityManager->getRepository(WeeklyCommission::class)->findBy(
+            ['employee' => $employee, 'validated' => true],
+            ['validatedAt' => 'DESC']
+        );
+
         return $this->render('admin_dashboard/employee_details.html.twig', [
             'employee' => $employee,
             'dailyStats' => $dailyStats,
             'weeklyStats' => $weeklyStats,
             'monthlyStats' => $monthlyStats,
+            'validatedCommissions' => $validatedCommissions,
         ]);
     }
 }

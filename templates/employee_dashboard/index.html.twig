@@ -136,7 +136,7 @@
                 <div class="card-body text-center">
                     <h5 class="card-title">Revenus du Mois</h5>
                     <h3 class="card-text">{{ totalMonthlyRevenue|number_format(2, ',', ' ') }} €</h3>
-                    <small>Revenus TTC ce mois-ci</small>
+                    <small>{{ monthlyClientCount }} clients ce mois-ci</small>
                 </div>
             </div>
         </div>
@@ -144,8 +144,8 @@
             <div class="card bg-success text-white stats-card" >
                 <div class="card-body text-center">
                     <h5 class="card-title">Commission du Mois</h5>
-                    <h3 class="card-text">{{ totalCommission|number_format(2, ',', ' ') }} €</h3>
-                    <small>Commission à {{ commissionPercentage }}%</small>
+                    <h3 class="card-text">{{ pendingCommission|number_format(2, ',', ' ') }} €</h3>
+                    <small>Commission à {{ commissionPercentage }}% (en attente)</small>
                 </div>
             </div>
         </div>
@@ -340,15 +340,18 @@
                                         <th class="text-center">Date</th>
                                         <th class="text-center">Service</th>
                                         <th class="text-center">Montant HT</th>
+                                        <th class="text-center">Commission</th>
                                         <th class="text-center">Montant TTC</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {% for revenue in recentRevenues %}
+                                        {% set commissionAmount = (revenue.amountHt * commissionPercentage / 100) %}
                                         <tr>
                                             <td class="text-center">{{ revenue.date|date('d/m/Y') }}</td>
                                             <td class="text-center">{{ revenue.package.name }}</td>
                                             <td class="text-center">{{ revenue.amountHt|number_format(2, ',', ' ') }} €</td>
+                                            <td class="text-center">{{ commissionAmount|number_format(2, ',', ' ') }} €</td>
                                             <td class="text-center"><strong>{{ revenue.amountTtc|number_format(2, ',', ' ') }} €</strong></td>
                                         </tr>
                                     {% endfor %}
