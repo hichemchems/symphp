@@ -43,8 +43,8 @@ class GenerateWeeklyCommissionsCommand extends Command
             $existingCommission = $this->entityManager->getRepository(WeeklyCommission::class)
                 ->findByEmployeeAndWeek($employee, $currentMonday, $currentSunday);
 
-            if ($existingCommission && $existingCommission->isValidated()) {
-                $io->note(sprintf('Commission already validated for employee %s for week %s to %s',
+            if ($existingCommission && $existingCommission->isPaid()) {
+                $io->note(sprintf('Commission already paid for employee %s for week %s to %s',
                     $employee->getFirstName() . ' ' . $employee->getLastName(),
                     $currentMonday->format('Y-m-d'),
                     $currentSunday->format('Y-m-d')
@@ -73,8 +73,8 @@ class GenerateWeeklyCommissionsCommand extends Command
             $commissionPercentage = (float) ($employee->getCommissionPercentage() ?? 0);
             $totalCommission = $revenueHt * ($commissionPercentage / 100);
 
-            if ($existingCommission && !$existingCommission->isValidated()) {
-                // Update existing non-validated commission
+            if ($existingCommission && !$existingCommission->isPaid()) {
+                // Update existing non-paid commission
                 $existingCommission->setTotalCommission((string) $totalCommission);
                 $existingCommission->setTotalRevenueHt((string) $revenueHt);
                 $existingCommission->setClientsCount($clientsCount);
@@ -85,7 +85,7 @@ class GenerateWeeklyCommissionsCommand extends Command
                     $clientsCount
                 ));
             } else {
-                // Create new commission entry if none exists or if existing is validated
+                // Create new commission entry if none exists or if existing is paid
                 $weeklyCommission = new WeeklyCommission();
                 $weeklyCommission->setEmployee($employee);
                 $weeklyCommission->setTotalCommission((string) $totalCommission);
