@@ -99,11 +99,13 @@ final class AdminDashboardController extends AbstractController
 
         // Calculate global statistics for today (only from employees created by this admin)
         $today = new \DateTime('today');
+        $tomorrow = new \DateTime('tomorrow');
         $todayRevenues = $revenueRepository->createQueryBuilder('r')
             ->join('r.employee', 'e')
-            ->where('DATE(r.date) = DATE(:start)')
+            ->where('r.date >= :start AND r.date < :end')
             ->andWhere('e.createdBy = :admin')
-            ->setParameter('start', $today->format('Y-m-d'))
+            ->setParameter('start', $today)
+            ->setParameter('end', $tomorrow)
             ->setParameter('admin', $this->getUser())
             ->getQuery()
             ->getResult();
@@ -315,10 +317,10 @@ final class AdminDashboardController extends AbstractController
         $revenueRepository = $entityManager->getRepository(\App\Entity\Revenue::class);
         $revenues = $revenueRepository->createQueryBuilder('r')
             ->where('r.employee = :employee')
-            ->andWhere('DATE(r.date) >= DATE(:start) AND DATE(r.date) <= DATE(:end)')
+            ->andWhere('r.date >= :start AND r.date <= :end')
             ->setParameter('employee', $employee)
-            ->setParameter('start', $startDate->format('Y-m-d'))
-            ->setParameter('end', $endDate->format('Y-m-d'))
+            ->setParameter('start', $startDate)
+            ->setParameter('end', $endDate)
             ->getQuery()
             ->getResult();
 
@@ -336,10 +338,10 @@ final class AdminDashboardController extends AbstractController
         $weeklyCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
             ->andWhere('wc.validated = false')
-            ->andWhere('DATE(wc.weekStart) >= DATE(:start) AND DATE(wc.weekEnd) <= DATE(:end)')
+            ->andWhere('wc.weekStart >= :start AND wc.weekEnd <= :end')
             ->setParameter('employee', $employee)
-            ->setParameter('start', $startDate->format('Y-m-d'))
-            ->setParameter('end', $endDate->format('Y-m-d'))
+            ->setParameter('start', $startDate)
+            ->setParameter('end', $endDate)
             ->getQuery()
             ->getResult();
 
