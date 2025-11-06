@@ -181,10 +181,11 @@ final class AdminDashboardController extends AbstractController
         $monthCommissions = $this->calculateCommissions($monthStart, $this->getUser());
         $yearCommissions = $this->calculateCommissions($yearStart, $this->getUser());
 
-        // Get employee statistics
+        // Get employee statistics (monthly accumulation)
+        $monthStart = new \DateTime('first day of this month');
         $employeeStats = [];
         foreach ($employees as $employee) {
-            $employeeStats[$employee->getId()] = $this->getEmployeeStats($employee, $today);
+            $employeeStats[$employee->getId()] = $this->getEmployeeStats($employee, $monthStart);
         }
 
         // Get all packages
