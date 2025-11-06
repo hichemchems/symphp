@@ -162,7 +162,6 @@ final class EmployeeDashboardController extends AbstractController
 
         $commission->setValidated(true);
         $commission->setValidatedAt(new \DateTime());
-        $commission->setTotalCommission('0.00');
 
         $entityManager->flush();
 
