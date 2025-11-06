@@ -53,6 +53,125 @@
                         </div>
                     </div>
 
+                    <!-- Buttons for Modals -->
+                    <div class="mt-4">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#weeklyStatsModal">
+                            <i class="fas fa-chart-line me-2"></i>Statistiques Hebdomadaires (4 semaines)
+                        </button>
+                        <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#monthlyStatsModal">
+                            <i class="fas fa-calendar-alt me-2"></i>Statistiques Mensuelles
+                        </button>
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#packagesModal">
+                            <i class="fas fa-list me-2"></i>Liste des Forfaits Exécutés
+                        </button>
+                    </div>
+
+                    <!-- Weekly Stats Modal -->
+                    <div class="modal fade" id="weeklyStatsModal" tabindex="-1" aria-labelledby="weeklyStatsModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="weeklyStatsModalLabel">Statistiques Hebdomadaires - 4 Dernières Semaines</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Semaine</th>
+                                                    <th>Chiffre d'Affaires HT</th>
+                                                    <th>Nombre de Clients</th>
+                                                    <th>Commissions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for weekStat in weeklyStatsLast4Weeks %}
+                                                    <tr>
+                                                        <td>{{ weekStat.week }}</td>
+                                                        <td>{{ weekStat.stats.revenueHt|number_format(2, ',', ' ') }} €</td>
+                                                        <td>{{ weekStat.stats.clients }}</td>
+                                                        <td>{{ weekStat.stats.commission|number_format(2, ',', ' ') }} €</td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Stats Modal -->
+                    <div class="modal fade" id="monthlyStatsModal" tabindex="-1" aria-labelledby="monthlyStatsModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="monthlyStatsModalLabel">Statistiques Mensuelles</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-body">
+                                                    <h5 class="card-title">Ce Mois</h5>
+                                                    <p class="card-text">
+                                                        <strong>Chiffre d'Affaires HT:</strong> {{ monthlyStats.revenueHt|number_format(2, ',', ' ') }} €<br>
+                                                        <strong>Nombre de Clients:</strong> {{ monthlyStats.clients }}<br>
+                                                        <strong>Commissions:</strong> {{ monthlyStats.commission|number_format(2, ',', ' ') }} €
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Packages Modal -->
+                    <div class="modal fade" id="packagesModal" tabindex="-1" aria-labelledby="packagesModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="packagesModalLabel">Liste des Forfaits Exécutés</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    {% if allRevenues is empty %}
+                                        <p class="text-muted">Aucun forfait exécuté pour cet employé.</p>
+                                    {% else %}
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Date</th>
+                                                        <th>Forfait</th>
+                                                        <th>Prix HT</th>
+                                                        <th>Prix TTC</th>
+                                                        <th>Commission</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for revenue in allRevenues %}
+                                                        <tr>
+                                                            <td>{{ revenue.date|date('d/m/Y H:i') }}</td>
+                                                            <td>{{ revenue.package ? revenue.package.name : 'N/A' }}</td>
+                                                            <td>{{ revenue.amountHt|number_format(2, ',', ' ') }} €</td>
+                                                            <td>{{ revenue.amountTtc|number_format(2, ',', ' ') }} €</td>
+                                                            <td>{{ ((revenue.amountHt * employee.commissionPercentage) / 100)|number_format(2, ',', ' ') }} €</td>
+                                                        </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Validation History -->
                     <div class="mt-4">
                         <h4>Historique des Validations de Commissions</h4>

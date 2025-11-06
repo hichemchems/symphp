@@ -415,8 +415,25 @@ final class AdminDashboardController extends AbstractController
         $monthEnd = new \DateTime('last day of this month');
         $monthlyStats = $this->getEmployeeStats($employee, $monthStart, $monthEnd, $entityManager);
 
+        // Calculate weekly stats for last 4 weeks
+        $weeklyStatsLast4Weeks = [];
+        for ($i = 0; $i < 4; $i++) {
+            $weekStartDate = new \DateTime('monday this week -' . $i . ' weeks');
+            $weekEndDate = new \DateTime('sunday this week -' . $i . ' weeks');
+            $weeklyStatsLast4Weeks[] = [
+                'week' => $weekStartDate->format('d/m/Y') . ' - ' . $weekEndDate->format('d/m/Y'),
+                'stats' => $this->getEmployeeStats($employee, $weekStartDate, $weekEndDate, $entityManager)
+            ];
+        }
+
+        // Get all executed packages (revenues) for the employee
+        $allRevenues = $entityManager->getRepository(\App\Entity\Revenue::class)->findBy(
+            ['employee' => $employee],
+            ['date' => 'DESC']
+        );
+
         // Get validation history
-        $validatedCommissions = $entityManager->getRepository(WeeklyCommission::class)->findBy(
+        $validatedCommissions = $entityManager->getRepository(\App\Entity\WeeklyCommission::class)->findBy(
             ['employee' => $employee, 'validated' => true],
             ['validatedAt' => 'DESC']
         );
@@ -426,6 +443,8 @@ final class AdminDashboardController extends AbstractController
             'dailyStats' => $dailyStats,
             'weeklyStats' => $weeklyStats,
             'monthlyStats' => $monthlyStats,
+            'weeklyStatsLast4Weeks' => $weeklyStatsLast4Weeks,
+            'allRevenues' => $allRevenues,
             'validatedCommissions' => $validatedCommissions,
         ]);
     }
