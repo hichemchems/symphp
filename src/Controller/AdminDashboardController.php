@@ -269,7 +269,20 @@ final class AdminDashboardController extends AbstractController
             $totalCharges += (float) $charge->getAmount();
         }
 
-        return $totalCharges;
+        // Prorate charges based on period
+        $today = new \DateTime('today');
+        $mondayThisWeek = new \DateTime('monday this week');
+
+        if ($startDate->format('Y-m-d') === $today->format('Y-m-d')) {
+            // Daily: divide by 20 days
+            return $totalCharges / 20;
+        } elseif ($startDate->format('Y-m-d') === $mondayThisWeek->format('Y-m-d')) {
+            // Weekly: divide by 4 weeks
+            return $totalCharges / 4;
+        } else {
+            // Monthly: return total
+            return $totalCharges;
+        }
     }
 
     private function calculateCommissions(\DateTime $startDate, Employee $admin): float
