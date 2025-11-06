@@ -374,4 +374,33 @@ final class AdminDashboardController extends AbstractController
 
         return $this->redirectToRoute('app_admin_dashboard');
     }
+
+    #[Route('/admin/employee/{id}/details', name: 'app_admin_employee_details')]
+    public function employeeDetails(Employee $employee, RevenueRepository $revenueRepository): Response
+    {
+        // Check if employee belongs to current admin
+        if ($employee->getCreatedBy() !== $this->getUser()) {
+            throw $this->createAccessDeniedException();
+        }
+
+        // Calculate daily stats (today)
+        $today = new \DateTime('today');
+        $tomorrow = new \DateTime('tomorrow');
+        $dailyStats = $this->getEmployeeStats($employee, $today);
+
+        // Calculate weekly stats (current week)
+        $weekStart = new \DateTime('monday this week');
+        $weeklyStats = $this->getEmployeeStats($employee, $weekStart);
+
+        // Calculate monthly stats (current month)
+        $monthStart = new \DateTime('first day of this month');
+        $monthlyStats = $this->getEmployeeStats($employee, $monthStart);
+
+        return $this->render('admin_dashboard/employee_details.html.twig', [
+            'employee' => $employee,
+            'dailyStats' => $dailyStats,
+            'weeklyStats' => $weeklyStats,
+            'monthlyStats' => $monthlyStats,
+        ]);
+    }
 }

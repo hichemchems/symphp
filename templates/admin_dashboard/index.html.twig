@@ -723,24 +723,26 @@
     {% if employees %}
     <div class="employee-cards">
         {% for employee in employees %}
-        <div class="employee-card">
-            <h6>{{ employee.firstName }} {{ employee.lastName }}</h6>
-            <div class="employee-stat">
-                <span class="employee-stat-label">CA HT</span>
-                <span class="employee-stat-value">{{ employeeStats[employee.id].revenueHt|default(0)|number_format(2, ',', ' ') }} €</span>
+        <a href="{{ path('app_admin_employee_details', {'id': employee.id}) }}" class="employee-card-link">
+            <div class="employee-card">
+                <h6>{{ employee.firstName }} {{ employee.lastName }}</h6>
+                <div class="employee-stat">
+                    <span class="employee-stat-label">CA HT</span>
+                    <span class="employee-stat-value">{{ employeeStats[employee.id].revenueHt|default(0)|number_format(2, ',', ' ') }} €</span>
+                </div>
+                <div class="employee-stat">
+                    <span class="employee-stat-label">Commission</span>
+                    <span class="employee-stat-value">{{ employeeStats[employee.id].commission|default(0)|number_format(2, ',', ' ') }} €</span>
+                </div>
+                <div class="employee-stat">
+                    <span class="employee-stat-label">Clients</span>
+                    <span class="employee-stat-value">{{ employeeStats[employee.id].clients|default(0) }}</span>
+                </div>
+                <div class="employee-status {{ employee.isVerified ? 'active' : 'inactive' }}">
+                    {{ employee.isVerified ? 'Actif' : 'En attente' }}
+                </div>
             </div>
-            <div class="employee-stat">
-                <span class="employee-stat-label">Commission</span>
-                <span class="employee-stat-value">{{ employeeStats[employee.id].commission|default(0)|number_format(2, ',', ' ') }} €</span>
-            </div>
-            <div class="employee-stat">
-                <span class="employee-stat-label">Clients</span>
-                <span class="employee-stat-value">{{ employeeStats[employee.id].clients|default(0) }}</span>
-            </div>
-            <div class="employee-status {{ employee.isVerified ? 'active' : 'inactive' }}">
-                {{ employee.isVerified ? 'Actif' : 'En attente' }}
-            </div>
-        </div>
+        </a>
         {% endfor %}
     </div>
     {% endif %}

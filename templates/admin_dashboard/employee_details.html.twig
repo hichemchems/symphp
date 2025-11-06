@@ -1,0 +1,188 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails Employé - {{ employee.firstName }} {{ employee.lastName }}{% endblock %}
+
+{% block stylesheets %}
+<style>
+.employee-details-header {
+    background: linear-gradient(135deg, #2c3e50, #3498db);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 10px;
+}
+
+.employee-details-header h1 {
+    font-size: 2.3rem;
+    font-weight: 300;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.employee-details-header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    text-align: center;
+}
+
+.stats-section {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.stats-section h3 {
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.stat-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    border-left: 4px solid #3498db;
+}
+
+.stat-card h5 {
+    color: #2c3e50;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.stat-card .value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 0.25rem;
+}
+
+.stat-card .subtitle {
+    color: #7f8c8d;
+    font-size: 0.8rem;
+}
+
+.back-btn {
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: background 0.3s ease;
+}
+
+.back-btn:hover {
+    background: #2980b9;
+    color: white;
+    text-decoration: none;
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .employee-details-header h1 {
+        font-size: 1.8rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="employee-details-header">
+    <div class="container">
+        <h1>{{ employee.firstName }} {{ employee.lastName }}</h1>
+        <p>Détails des statistiques</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="mb-4">
+        <a href="{{ path('app_admin_dashboard') }}" class="back-btn">
+            <i class="fas fa-arrow-left"></i>Retour au tableau de bord
+        </a>
+    </div>
+
+    <!-- Daily Stats -->
+    <div class="stats-section">
+        <h3><i class="fas fa-calendar-day me-2"></i>Statistiques du Jour</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h5>CA HT</h5>
+                <div class="value">{{ dailyStats.revenueHt|number_format(2, ',', ' ') }} €</div>
+                <div class="subtitle">Chiffre d'affaires HT</div>
+            </div>
+            <div class="stat-card">
+                <h5>Commission</h5>
+                <div class="value">{{ dailyStats.commission|number_format(2, ',', ' ') }} €</div>
+                <div class="subtitle">Commission gagnée</div>
+            </div>
+            <div class="stat-card">
+                <h5>Clients</h5>
+                <div class="value">{{ dailyStats.clients }}</div>
+                <div class="subtitle">Nombre de clients</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Weekly Stats -->
+    <div class="stats-section">
+        <h3><i class="fas fa-calendar-week me-2"></i>Statistiques de la Semaine</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h5>CA HT</h5>
+                <div class="value">{{ weeklyStats.revenueHt|number_format(2, ',', ' ') }} €</div>
+                <div class="subtitle">Chiffre d'affaires HT</div>
+            </div>
+            <div class="stat-card">
+                <h5>Commission</h5>
+                <div class="value">{{ weeklyStats.commission|number_format(2, ',', ' ') }} €</div>
+                <div class="subtitle">Commission gagnée</div>
+            </div>
+            <div class="stat-card">
+                <h5>Clients</h5>
+                <div class="value">{{ weeklyStats.clients }}</div>
+                <div class="subtitle">Nombre de clients</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Stats -->
+    <div class="stats-section">
+        <h3><i class="fas fa-calendar-alt me-2"></i>Statistiques du Mois</h3>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h5>CA HT</h5>
+                <div class="value">{{ monthlyStats.revenueHt|number_format(2, ',', ' ') }} €</div>
+                <div class="subtitle">Chiffre d'affaires HT</div>
+            </div>
+            <div class="stat-card">
+                <h5>Commission</h5>
+                <div class="value">{{ monthlyStats.commission|number_format(2, ',', ' ') }} €</div>
+                <div class="subtitle">Commission gagnée</div>
+            </div>
+            <div class="stat-card">
+                <h5>Clients</h5>
+                <div class="value">{{ monthlyStats.clients }}</div>
+                <div class="subtitle">Nombre de clients</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

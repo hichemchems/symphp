@@ -104,6 +104,9 @@ final class EmployeeDashboardController extends AbstractController
         // Get current week commission for validation
         $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
 
+        // Get commission history (validated commissions)
+        $commissionHistory = $this->getCommissionHistory($user, $weeklyCommissionRepository);
+
         return $this->render('employee_dashboard/index.html.twig', [
             'todayAppointments' => $todayAppointments,
             'recentRevenues' => $recentRevenues,
@@ -115,6 +118,7 @@ final class EmployeeDashboardController extends AbstractController
             'weeklyStats' => $weeklyStats,
             'monthlyStats' => $monthlyStats,
             'currentWeekCommission' => $currentWeekCommission,
+            'commissionHistory' => $commissionHistory,
         ]);
     }
 
@@ -150,5 +154,15 @@ final class EmployeeDashboardController extends AbstractController
         $currentSunday = new \DateTime('sunday this week');
 
         return $weeklyCommissionRepository->findByEmployeeAndWeek($user, $currentMonday, $currentSunday);
+    }
+
+    private function getCommissionHistory($user, WeeklyCommissionRepository $weeklyCommissionRepository): array
+    {
+        // Get validated commissions for the last 12 weeks
+        return $weeklyCommissionRepository->findBy(
+            ['employee' => $user, 'validated' => true],
+            ['weekStart' => 'DESC'],
+            12
+        );
     }
 }

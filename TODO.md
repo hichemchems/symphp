@@ -1,17 +1,17 @@
 # TODO List for Statistics and Commissions Fix
 
 ## 1. Modify AdminDashboardController
-- [ ] Change getEmployeeStats to use monthly period instead of daily
-- [ ] Update employee stats calculation to accumulate monthly
+- [x] Change getEmployeeStats to use monthly period instead of daily
+- [x] Update employee stats calculation to accumulate monthly
 
 ## 2. Create ResetMonthlyStatsCommand
-- [ ] Create src/Command/ResetMonthlyStatsCommand.php
-- [ ] Archive monthly global stats (revenue, commissions, profit)
-- [ ] Reset current month stats to 0
+- [x] Create src/Command/ResetMonthlyStatsCommand.php
+- [x] Archive monthly global stats (revenue, commissions, profit)
+- [x] Reset current month stats to 0
 
 ## 3. Add Employee Details Route
-- [ ] Add new route in AdminDashboardController for employee details
-- [ ] Create method to show detailed stats (daily/weekly/monthly revenue/clients/commissions)
+- [x] Add new route in AdminDashboardController for employee details
+- [x] Create method to show detailed stats (daily/weekly/monthly revenue/clients/commissions)
 
 ## 4. Update Admin Dashboard Template
 - [ ] Make employee cards clickable
