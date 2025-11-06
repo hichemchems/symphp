@@ -231,7 +231,7 @@
 <script>
 function markCommissionPaid(commissionId) {
     if (confirm('Êtes-vous sûr de vouloir marquer cette commission comme payée ? Cette action confirme que le paiement a été effectué.')) {
-        fetch('/employee/mark-commission-paid', {
+        fetch('/admin/mark-commission-paid', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
