@@ -203,6 +203,10 @@
                                                         <span class="badge bg-success">Payée</span>
                                                     {% else %}
                                                         <span class="badge bg-warning">En attente de paiement</span>
+                                                        <br><br>
+                                                        <button class="btn btn-primary btn-sm" onclick="markCommissionPaid({{ commission.id }})">
+                                                            <i class="fas fa-money-bill-wave"></i> Confirmer le paiement
+                                                        </button>
                                                     {% endif %}
                                                 </td>
                                             </tr>
@@ -223,4 +227,32 @@
         </div>
     </div>
 </div>
+
+<script>
+function markCommissionPaid(commissionId) {
+    if (confirm('Êtes-vous sûr de vouloir marquer cette commission comme payée ? Cette action confirme que le paiement a été effectué.')) {
+        fetch('/employee/mark-commission-paid', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'commission_id=' + commissionId
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Commission marquée comme payée avec succès !');
+                location.reload(); // Reload to update the status
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Une erreur est survenue lors de la confirmation du paiement.');
+        });
+    }
+}
+</script>
 {% endblock %}
