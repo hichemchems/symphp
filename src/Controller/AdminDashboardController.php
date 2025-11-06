@@ -290,11 +290,12 @@ final class AdminDashboardController extends AbstractController
 
     private function calculateCommissions(\DateTime $startDate, Employee $admin): float
     {
-        // Calculate total commissions paid to employees from start date to now (only from employees created by this admin)
-        $revenueRepository = $this->entityManager->getRepository(\App\Entity\Revenue::class);
-        $revenues = $revenueRepository->createQueryBuilder('r')
-            ->join('r.employee', 'e')
-            ->where('r.date >= :start')
+        // Calculate total validated commissions from WeeklyCommission for employees created by this admin
+        $weeklyCommissionRepository = $this->entityManager->getRepository(\App\Entity\WeeklyCommission::class);
+        $commissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+            ->join('wc.employee', 'e')
+            ->where('wc.validated = true')
+            ->andWhere('wc.weekStart >= :start')
             ->andWhere('e.createdBy = :admin')
             ->setParameter('start', $startDate)
             ->setParameter('admin', $admin)
@@ -302,10 +303,8 @@ final class AdminDashboardController extends AbstractController
             ->getResult();
 
         $totalCommissions = 0;
-        foreach ($revenues as $revenue) {
-            $commissionPercentage = $revenue->getEmployee()->getCommissionPercentage();
-            $commission = ((float) $revenue->getAmountHt() * $commissionPercentage) / 100;
-            $totalCommissions += $commission;
+        foreach ($commissions as $commission) {
+            $totalCommissions += (float) $commission->getTotalCommission();
         }
 
         return $totalCommissions;

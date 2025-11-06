@@ -43,13 +43,22 @@ class GenerateWeeklyCommissionsCommand extends Command
             $existingCommission = $this->entityManager->getRepository(WeeklyCommission::class)
                 ->findByEmployeeAndWeek($employee, $currentMonday, $currentSunday);
 
-            if ($existingCommission) {
-                $io->note(sprintf('Commission already exists for employee %s for week %s to %s',
+            if ($existingCommission && $existingCommission->isValidated()) {
+                $io->note(sprintf('Commission already validated for employee %s for week %s to %s',
                     $employee->getFirstName() . ' ' . $employee->getLastName(),
                     $currentMonday->format('Y-m-d'),
                     $currentSunday->format('Y-m-d')
                 ));
                 continue;
+            }
+
+            // If commission exists but not validated, update it
+            if ($existingCommission && !$existingCommission->isValidated()) {
+                $io->note(sprintf('Updating existing commission for employee %s for week %s to %s',
+                    $employee->getFirstName() . ' ' . $employee->getLastName(),
+                    $currentMonday->format('Y-m-d'),
+                    $currentSunday->format('Y-m-d')
+                ));
             }
 
             // Calculate weekly revenue HT and client count
