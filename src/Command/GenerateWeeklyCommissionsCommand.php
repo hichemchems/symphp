@@ -40,8 +40,18 @@ class GenerateWeeklyCommissionsCommand extends Command
 
         foreach ($employees as $employee) {
             // Check if commission already exists for this week
-            $existingCommission = $this->entityManager->getRepository(WeeklyCommission::class)
-                ->findByEmployeeAndWeek($employee, $currentMonday, $currentSunday);
+            $existingCommissions = $this->entityManager->getRepository(WeeklyCommission::class)
+                ->createQueryBuilder('wc')
+                ->where('wc.employee = :employee')
+                ->andWhere('wc.weekStart = :weekStart')
+                ->andWhere('wc.weekEnd = :weekEnd')
+                ->setParameter('employee', $employee)
+                ->setParameter('weekStart', $currentMonday)
+                ->setParameter('weekEnd', $currentSunday)
+                ->getQuery()
+                ->getResult();
+
+            $existingCommission = count($existingCommissions) > 0 ? $existingCommissions[0] : null;
 
             if ($existingCommission && $existingCommission->isPaid()) {
                 $io->note(sprintf('Commission already paid for employee %s for week %s to %s',
