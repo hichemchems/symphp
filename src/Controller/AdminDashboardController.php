@@ -183,9 +183,10 @@ final class AdminDashboardController extends AbstractController
 
         // Get employee statistics (monthly accumulation)
         $monthStart = new \DateTime('first day of this month');
+        $monthEnd = new \DateTime('last day of this month');
         $employeeStats = [];
         foreach ($employees as $employee) {
-            $employeeStats[$employee->getId()] = $this->getEmployeeStats($employee, $monthStart, $entityManager);
+            $employeeStats[$employee->getId()] = $this->getEmployeeStats($employee, $monthStart, $monthEnd, $entityManager);
         }
 
         // Get all packages
@@ -308,15 +309,18 @@ final class AdminDashboardController extends AbstractController
         return $totalCommissions;
     }
 
-    private function getEmployeeStats(\App\Entity\Employee $employee, \DateTime $startDate, EntityManagerInterface $entityManager): array
+    private function getEmployeeStats(\App\Entity\Employee $employee, \DateTime $startDate, \DateTime $endDate, EntityManagerInterface $entityManager): array
     {
-        // Get revenue data from Revenue entity for the period
+        // Get revenue data from Revenue entity for the period (current month)
         $revenueRepository = $entityManager->getRepository(\App\Entity\Revenue::class);
+        $endDate = clone $startDate;
+        $endDate->modify('last day of this month');
         $revenues = $revenueRepository->createQueryBuilder('r')
             ->where('r.employee = :employee')
-            ->andWhere('r.date >= :start')
+            ->andWhere('r.date BETWEEN :start AND :end')
             ->setParameter('employee', $employee)
             ->setParameter('start', $startDate)
+            ->setParameter('end', $endDate)
             ->getQuery()
             ->getResult();
 
@@ -328,7 +332,7 @@ final class AdminDashboardController extends AbstractController
         foreach ($revenues as $revenue) {
             $totalRevenueHt += (float) $revenue->getAmountHt();
             $totalRevenue += (float) $revenue->getAmountTtc();
-            $commission = ((float) $revenue->getAmountHt() * $employee->getCommissionPercentage()) / 100;
+            $commission = ((float) $revenue->getAmountTtc() * $employee->getCommissionPercentage()) / 100;
             $totalCommission += $commission;
         }
 

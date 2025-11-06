@@ -21,6 +21,7 @@ final class EmployeeDashboardController extends AbstractController
     #[Route('/employee/dashboard', name: 'app_employee_dashboard')]
     public function index(AppointmentRepository $appointmentRepository, RevenueRepository $revenueRepository, PackageRepository $packageRepository, StatisticsRepository $statisticsRepository, WeeklyCommissionRepository $weeklyCommissionRepository): Response
     {
+        /** @var \App\Entity\Employee $user */
         $user = $this->getUser();
 
         // Get today's appointments for the employee
@@ -70,7 +71,7 @@ final class EmployeeDashboardController extends AbstractController
 
         $totalValidatedCommission = 0;
         foreach ($validatedCommissions as $commission) {
-            $totalValidatedCommission += (float) $commission->getAmount();
+            $totalValidatedCommission += (float) $commission->getTotalCommission();
         }
 
         // Calculate today's CA HT
