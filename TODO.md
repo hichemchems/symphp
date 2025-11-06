@@ -14,12 +14,12 @@
 - [x] Create method to show detailed stats (daily/weekly/monthly revenue/clients/commissions)
 
 ## 4. Update Admin Dashboard Template
-- [ ] Make employee cards clickable
-- [ ] Link to new employee details route
+- [x] Make employee cards clickable
+- [x] Link to new employee details route
 
 ## 5. Update Employee Dashboard Controller
-- [ ] Add method to get commission history (validated commissions)
-- [ ] Modify index method to pass commission history data
+- [x] Add method to get commission history (validated commissions)
+- [x] Modify index method to pass commission history data
 
 ## 6. Update Employee Dashboard Template
 - [x] Add commission history modal

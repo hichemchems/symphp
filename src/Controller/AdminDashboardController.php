@@ -185,7 +185,7 @@ final class AdminDashboardController extends AbstractController
         $monthStart = new \DateTime('first day of this month');
         $employeeStats = [];
         foreach ($employees as $employee) {
-            $employeeStats[$employee->getId()] = $this->getEmployeeStats($employee, $monthStart);
+            $employeeStats[$employee->getId()] = $this->getEmployeeStats($employee, $monthStart, $entityManager);
         }
 
         // Get all packages
@@ -295,10 +295,10 @@ final class AdminDashboardController extends AbstractController
         return $totalCommissions;
     }
 
-    private function getEmployeeStats(\App\Entity\Employee $employee, \DateTime $startDate): array
+    private function getEmployeeStats(\App\Entity\Employee $employee, \DateTime $startDate, EntityManagerInterface $entityManager): array
     {
         // Get revenue data from Revenue entity for the period
-        $revenueRepository = $this->entityManager->getRepository(\App\Entity\Revenue::class);
+        $revenueRepository = $entityManager->getRepository(\App\Entity\Revenue::class);
         $revenues = $revenueRepository->createQueryBuilder('r')
             ->where('r.employee = :employee')
             ->andWhere('r.date >= :start')
@@ -376,7 +376,7 @@ final class AdminDashboardController extends AbstractController
     }
 
     #[Route('/admin/employee/{id}/details', name: 'app_admin_employee_details')]
-    public function employeeDetails(Employee $employee, RevenueRepository $revenueRepository): Response
+    public function employeeDetails(Employee $employee, EntityManagerInterface $entityManager): Response
     {
         // Check if employee belongs to current admin
         if ($employee->getCreatedBy() !== $this->getUser()) {
@@ -386,15 +386,15 @@ final class AdminDashboardController extends AbstractController
         // Calculate daily stats (today)
         $today = new \DateTime('today');
         $tomorrow = new \DateTime('tomorrow');
-        $dailyStats = $this->getEmployeeStats($employee, $today);
+        $dailyStats = $this->getEmployeeStats($employee, $today, $entityManager);
 
         // Calculate weekly stats (current week)
         $weekStart = new \DateTime('monday this week');
-        $weeklyStats = $this->getEmployeeStats($employee, $weekStart);
+        $weeklyStats = $this->getEmployeeStats($employee, $weekStart, $entityManager);
 
         // Calculate monthly stats (current month)
         $monthStart = new \DateTime('first day of this month');
-        $monthlyStats = $this->getEmployeeStats($employee, $monthStart);
+        $monthlyStats = $this->getEmployeeStats($employee, $monthStart, $entityManager);
 
         return $this->render('admin_dashboard/employee_details.html.twig', [
             'employee' => $employee,
