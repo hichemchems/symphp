@@ -7,6 +7,7 @@ use App\Repository\PackageRepository;
 use App\Repository\RevenueRepository;
 use App\Repository\StatisticsRepository;
 use App\Repository\WeeklyCommissionRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -56,6 +57,21 @@ final class EmployeeDashboardController extends AbstractController
         // Calculate commission for current month (based on HT revenue)
         $commissionPercentage = (float) ($user->getCommissionPercentage() ?? 0);
         $totalCommission = $totalMonthlyRevenue * ($commissionPercentage / 100);
+
+        // Get validated commissions for current month
+        $validatedCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+            ->where('wc.employee = :employee')
+            ->andWhere('wc.validated = true')
+            ->andWhere('wc.weekStart >= :monthStart')
+            ->setParameter('employee', $user)
+            ->setParameter('monthStart', $startOfMonth)
+            ->getQuery()
+            ->getResult();
+
+        $totalValidatedCommission = 0;
+        foreach ($validatedCommissions as $commission) {
+            $totalValidatedCommission += (float) $commission->getAmount();
+        }
 
         // Calculate today's CA HT
         $today = new \DateTime('today');
@@ -123,7 +139,7 @@ final class EmployeeDashboardController extends AbstractController
     }
 
     #[Route('/employee/validate-commission', name: 'app_employee_validate_commission', methods: ['POST'])]
-    public function validateCommission(Request $request, WeeklyCommissionRepository $weeklyCommissionRepository): JsonResponse
+    public function validateCommission(Request $request, WeeklyCommissionRepository $weeklyCommissionRepository, EntityManagerInterface $entityManager): JsonResponse
     {
         $commissionId = $request->request->get('commission_id');
         $user = $this->getUser();
@@ -141,7 +157,6 @@ final class EmployeeDashboardController extends AbstractController
         $commission->setValidated(true);
         $commission->setValidatedAt(new \DateTime());
 
-        $entityManager = $this->container->get('doctrine')->getManager();
         $entityManager->flush();
 
         return new JsonResponse(['success' => true, 'message' => 'Commission validée avec succès.']);
