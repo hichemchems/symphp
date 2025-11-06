@@ -101,9 +101,9 @@ final class AdminDashboardController extends AbstractController
         $today = new \DateTime('today');
         $todayRevenues = $revenueRepository->createQueryBuilder('r')
             ->join('r.employee', 'e')
-            ->where('r.date >= :start')
+            ->where('DATE(r.date) = DATE(:start)')
             ->andWhere('e.createdBy = :admin')
-            ->setParameter('start', $today)
+            ->setParameter('start', $today->format('Y-m-d'))
             ->setParameter('admin', $this->getUser())
             ->getQuery()
             ->getResult();
@@ -315,10 +315,10 @@ final class AdminDashboardController extends AbstractController
         $revenueRepository = $entityManager->getRepository(\App\Entity\Revenue::class);
         $revenues = $revenueRepository->createQueryBuilder('r')
             ->where('r.employee = :employee')
-            ->andWhere('r.date BETWEEN :start AND :end')
+            ->andWhere('DATE(r.date) >= DATE(:start) AND DATE(r.date) <= DATE(:end)')
             ->setParameter('employee', $employee)
-            ->setParameter('start', $startDate)
-            ->setParameter('end', $endDate)
+            ->setParameter('start', $startDate->format('Y-m-d'))
+            ->setParameter('end', $endDate->format('Y-m-d'))
             ->getQuery()
             ->getResult();
 
@@ -331,15 +331,15 @@ final class AdminDashboardController extends AbstractController
             $totalRevenue += (float) $revenue->getAmountTtc();
         }
 
-        // Calculate commission from weekly commissions for the period
+        // Calculate commission from weekly commissions for the period (only unvalidated ones)
         $weeklyCommissionRepository = $entityManager->getRepository(\App\Entity\WeeklyCommission::class);
         $weeklyCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
-            ->andWhere('wc.weekStart >= :start')
-            ->andWhere('wc.weekEnd <= :end')
+            ->andWhere('wc.validated = false')
+            ->andWhere('DATE(wc.weekStart) >= DATE(:start) AND DATE(wc.weekEnd) <= DATE(:end)')
             ->setParameter('employee', $employee)
-            ->setParameter('start', $startDate)
-            ->setParameter('end', $endDate)
+            ->setParameter('start', $startDate->format('Y-m-d'))
+            ->setParameter('end', $endDate->format('Y-m-d'))
             ->getQuery()
             ->getResult();
 

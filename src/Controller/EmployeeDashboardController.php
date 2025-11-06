@@ -43,10 +43,10 @@ final class EmployeeDashboardController extends AbstractController
         $endOfMonth = new \DateTime('last day of this month');
         $monthlyRevenues = $revenueRepository->createQueryBuilder('r')
             ->where('r.employee = :employee')
-            ->andWhere('r.date BETWEEN :start AND :end')
+            ->andWhere('DATE(r.date) >= DATE(:start) AND DATE(r.date) <= DATE(:end)')
             ->setParameter('employee', $user)
-            ->setParameter('start', $startOfMonth)
-            ->setParameter('end', $endOfMonth)
+            ->setParameter('start', $startOfMonth->format('Y-m-d'))
+            ->setParameter('end', $endOfMonth->format('Y-m-d'))
             ->getQuery()
             ->getResult();
 
