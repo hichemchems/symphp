@@ -303,6 +303,10 @@
                                         <span class="badge bg-primary">Payée</span>
                                     {% else %}
                                         <span class="badge bg-warning">En attente de paiement</span>
+                                        <br><br>
+                                        <button class="btn btn-primary btn-sm" onclick="markCommissionPaid({{ currentWeekCommission.id }})">
+                                            <i class="fas fa-money-bill-wave"></i> Confirmer le paiement
+                                        </button>
                                     {% endif %}
                                 {% else %}
                                     <span class="badge bg-secondary">En attente de validation</span>
@@ -666,6 +670,32 @@ function validateWeeklyCommission(commissionId) {
         .catch(error => {
             console.error('Error:', error);
             alert('Une erreur est survenue lors de la validation.');
+        });
+    }
+}
+
+function markCommissionPaid(commissionId) {
+    if (confirm('Êtes-vous sûr de vouloir marquer cette commission comme payée ? Cette action confirme que le paiement a été effectué.')) {
+        fetch('/employee/mark-commission-paid', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'commission_id=' + commissionId
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Commission marquée comme payée avec succès !');
+                location.reload(); // Reload to update the status
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Une erreur est survenue lors de la confirmation du paiement.');
         });
     }
 }

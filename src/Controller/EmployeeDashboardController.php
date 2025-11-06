@@ -170,6 +170,34 @@ final class EmployeeDashboardController extends AbstractController
         return new JsonResponse(['success' => true, 'message' => 'Commission validée avec succès.']);
     }
 
+    #[Route('/employee/mark-commission-paid', name: 'app_employee_mark_commission_paid', methods: ['POST'])]
+    public function markCommissionPaid(Request $request, WeeklyCommissionRepository $weeklyCommissionRepository, EntityManagerInterface $entityManager): JsonResponse
+    {
+        $commissionId = $request->request->get('commission_id');
+        $user = $this->getUser();
+
+        $commission = $weeklyCommissionRepository->find($commissionId);
+
+        if (!$commission || $commission->getEmployee() !== $user) {
+            return new JsonResponse(['success' => false, 'message' => 'Commission non trouvée ou accès non autorisé.']);
+        }
+
+        if (!$commission->isValidated()) {
+            return new JsonResponse(['success' => false, 'message' => 'Cette commission doit d\'abord être validée.']);
+        }
+
+        if ($commission->isPaid()) {
+            return new JsonResponse(['success' => false, 'message' => 'Cette commission est déjà payée.']);
+        }
+
+        $commission->setPaid(true);
+        $commission->setPaidAt(new \DateTime());
+
+        $entityManager->flush();
+
+        return new JsonResponse(['success' => true, 'message' => 'Commission marquée comme payée avec succès.']);
+    }
+
     private function getCurrentWeekCommission($user, WeeklyCommissionRepository $weeklyCommissionRepository): ?object
     {
         $now = new \DateTime();
