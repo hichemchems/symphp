@@ -22,8 +22,8 @@
 - [ ] Modify index method to pass commission history data
 
 ## 6. Update Employee Dashboard Template
-- [ ] Add commission history modal
-- [ ] Display validated commissions with media queries
+- [x] Add commission history modal
+- [x] Display validated commissions with media queries
 
 ## 7. Testing
 - [ ] Test monthly accumulation

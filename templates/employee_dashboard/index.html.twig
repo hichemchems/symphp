@@ -452,6 +452,56 @@
     </div>
 </div>
 
+<!-- Commission History Modal -->
+<div class="modal fade" id="commissionHistoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Historique des Commissions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% if commissionHistory is empty %}
+                    <p class="text-muted text-center">Aucune commission validée trouvée.</p>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Semaine</th>
+                                    <th>Revenus HT</th>
+                                    <th>Commission</th>
+                                    <th>Clients</th>
+                                    <th>Validée le</th>
+                                    <th>Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for commission in commissionHistory %}
+                                    <tr>
+                                        <td>{{ commission.weekStart|date('d/m/Y') }} - {{ commission.weekEnd|date('d/m/Y') }}</td>
+                                        <td>{{ commission.totalRevenueHt|number_format(2, ',', ' ') }} €</td>
+                                        <td>{{ commission.totalCommission|number_format(2, ',', ' ') }} €</td>
+                                        <td>{{ commission.clientsCount }}</td>
+                                        <td>{{ commission.validatedAt|date('d/m/Y H:i') }}</td>
+                                        <td>
+                                            {% if commission.paid %}
+                                                <span class="badge bg-success">Payée</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">En attente de paiement</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 let selectedPackage = null;
 let totalCaHt = 0;
