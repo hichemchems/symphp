@@ -61,21 +61,34 @@ final class EmployeeDashboardController extends AbstractController
         $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
 
         // Calculate total commission for the month (sum of all weekly commissions for current month, validated or not)
+        // But exclude duplicates by using DISTINCT on weekStart/weekEnd
         $allMonthlyCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+            ->select('wc')
             ->where('wc.employee = :employee')
             ->andWhere('wc.weekStart >= :startOfMonth')
             ->andWhere('wc.weekEnd <= :endOfMonth')
             ->setParameter('employee', $user)
             ->setParameter('startOfMonth', $startOfMonth)
             ->setParameter('endOfMonth', $endOfMonth)
+            ->orderBy('wc.weekStart', 'ASC')
             ->getQuery()
             ->getResult();
 
-        $totalCommission = array_reduce($allMonthlyCommissions, function($sum, $commission) {
+        // Remove duplicates by week (keep the latest one)
+        $uniqueCommissions = [];
+        foreach ($allMonthlyCommissions as $commission) {
+            $weekKey = $commission->getWeekStart()->format('Y-m-d') . '-' . $commission->getWeekEnd()->format('Y-m-d');
+            if (!isset($uniqueCommissions[$weekKey]) || $commission->getId() > $uniqueCommissions[$weekKey]->getId()) {
+                $uniqueCommissions[$weekKey] = $commission;
+            }
+        }
+
+        $totalCommission = array_reduce($uniqueCommissions, function($sum, $commission) {
             return $sum + (float)$commission->getTotalCommission();
         }, 0);
 
         // Calculate paid commission for the month (sum of paid weekly commissions for current month)
+        // Exclude duplicates
         $paidCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
             ->andWhere('wc.paid = true')
@@ -84,10 +97,20 @@ final class EmployeeDashboardController extends AbstractController
             ->setParameter('employee', $user)
             ->setParameter('startOfMonth', $startOfMonth)
             ->setParameter('endOfMonth', $endOfMonth)
+            ->orderBy('wc.weekStart', 'ASC')
             ->getQuery()
             ->getResult();
 
-        $validatedCommission = array_reduce($paidCommissions, function($sum, $commission) {
+        // Remove duplicates by week (keep the latest one)
+        $uniquePaidCommissions = [];
+        foreach ($paidCommissions as $commission) {
+            $weekKey = $commission->getWeekStart()->format('Y-m-d') . '-' . $commission->getWeekEnd()->format('Y-m-d');
+            if (!isset($uniquePaidCommissions[$weekKey]) || $commission->getId() > $uniquePaidCommissions[$weekKey]->getId()) {
+                $uniquePaidCommissions[$weekKey] = $commission;
+            }
+        }
+
+        $validatedCommission = array_reduce($uniquePaidCommissions, function($sum, $commission) {
             return $sum + (float)$commission->getTotalCommission();
         }, 0);
 
@@ -239,11 +262,23 @@ final class EmployeeDashboardController extends AbstractController
     private function getCommissionHistory($user, WeeklyCommissionRepository $weeklyCommissionRepository): array
     {
         // Get all commissions for the last 12 weeks (validated or not, paid or not)
-        return $weeklyCommissionRepository->findBy(
+        $allCommissions = $weeklyCommissionRepository->findBy(
             ['employee' => $user],
             ['weekStart' => 'DESC'],
             12
         );
+
+        // Remove duplicates by week (keep the latest one)
+        $uniqueCommissions = [];
+        foreach ($allCommissions as $commission) {
+            $weekKey = $commission->getWeekStart()->format('Y-m-d') . '-' . $commission->getWeekEnd()->format('Y-m-d');
+            if (!isset($uniqueCommissions[$weekKey]) || $commission->getId() > $uniqueCommissions[$weekKey]->getId()) {
+                $uniqueCommissions[$weekKey] = $commission;
+            }
+        }
+
+        // Return only the unique commissions, sorted by weekStart DESC
+        return array_values(array_slice($uniqueCommissions, 0, 12));
     }
 
     private function calculatePendingCommission($user, $lastValidatedCommission, RevenueRepository $revenueRepository): array
