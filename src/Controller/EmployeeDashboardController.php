@@ -57,11 +57,27 @@ final class EmployeeDashboardController extends AbstractController
         // Get commission percentage
         $commissionPercentage = (float) ($user->getCommissionPercentage() ?? 0);
 
-        // Calculate commission based on revenue HT and commission percentage
-        $totalCommission = $totalMonthlyRevenue * ($commissionPercentage / 100);
+        // Get current week commission for validation
+        $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
 
-        // Calculate pending commission (same as totalCommission for now)
-        $pendingCommission = $totalCommission;
+        // Calculate total commission for the month (sum of validated weekly commissions for current month)
+        $validatedCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+            ->where('wc.employee = :employee')
+            ->andWhere('wc.validated = true')
+            ->andWhere('wc.weekStart >= :startOfMonth')
+            ->andWhere('wc.weekEnd <= :endOfMonth')
+            ->setParameter('employee', $user)
+            ->setParameter('startOfMonth', $startOfMonth)
+            ->setParameter('endOfMonth', $endOfMonth)
+            ->getQuery()
+            ->getResult();
+
+        $totalCommission = array_reduce($validatedCommissions, function($sum, $commission) {
+            return $sum + (float)$commission->getTotalCommission();
+        }, 0);
+
+        // Calculate pending commission (current week's unvalidated commission)
+        $pendingCommission = $currentWeekCommission ? (float)$currentWeekCommission->getTotalCommission() : 0;
 
         // Get client count for current month
         $monthlyClientCount = count($monthlyRevenues);
@@ -109,9 +125,6 @@ final class EmployeeDashboardController extends AbstractController
             ['date' => 'DESC'],
             12 // Last 12 months
         );
-
-        // Get current week commission for validation
-        $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
 
         // Get commission history (validated commissions)
         $commissionHistory = $this->getCommissionHistory($user, $weeklyCommissionRepository);
