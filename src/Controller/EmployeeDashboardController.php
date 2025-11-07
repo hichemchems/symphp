@@ -60,11 +60,23 @@ final class EmployeeDashboardController extends AbstractController
         // Get current week commission for validation
         $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
 
-        // Calculate total commission for the month (total revenues × commission rate)
-        $totalCommission = $totalMonthlyRevenue * ($commissionPercentage / 100);
+        // Calculate total commission for the month (sum of all weekly commissions for current month, validated or not)
+        $allMonthlyCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+            ->where('wc.employee = :employee')
+            ->andWhere('wc.weekStart >= :startOfMonth')
+            ->andWhere('wc.weekEnd <= :endOfMonth')
+            ->setParameter('employee', $user)
+            ->setParameter('startOfMonth', $startOfMonth)
+            ->setParameter('endOfMonth', $endOfMonth)
+            ->getQuery()
+            ->getResult();
 
-        // Calculate validated commission for the month (sum of paid weekly commissions for current month)
-        $validatedCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+        $totalCommission = array_reduce($allMonthlyCommissions, function($sum, $commission) {
+            return $sum + (float)$commission->getTotalCommission();
+        }, 0);
+
+        // Calculate paid commission for the month (sum of paid weekly commissions for current month)
+        $paidCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
             ->andWhere('wc.paid = true')
             ->andWhere('wc.weekStart >= :startOfMonth')
@@ -75,27 +87,23 @@ final class EmployeeDashboardController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        $validatedCommission = array_reduce($validatedCommissions, function($sum, $commission) {
+        $validatedCommission = array_reduce($paidCommissions, function($sum, $commission) {
             return $sum + (float)$commission->getTotalCommission();
         }, 0);
 
-        // Calculate pending commission (total commission - paid commission)
-        $pendingCommission = $totalCommission - $validatedCommission;
-        $pendingRevenueHt = $pendingCommission / ($commissionPercentage / 100); // Reverse calculate HT
-        $pendingClientsCount = 0; // Will be calculated properly below
+        // Calculate pending commission (current week's commission if not validated)
+        $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
+        if ($currentWeekCommission && !$currentWeekCommission->isValidated()) {
+            $pendingCommission = (float)$currentWeekCommission->getTotalCommission();
+            $pendingRevenueHt = (float)$currentWeekCommission->getTotalRevenueHt();
+            $pendingClientsCount = $currentWeekCommission->getClientsCount();
+        } else {
+            $pendingCommission = 0;
+            $pendingRevenueHt = 0;
+            $pendingClientsCount = 0;
+        }
 
-        // Get actual pending data for display
-        $lastValidatedCommission = $weeklyCommissionRepository->createQueryBuilder('wc')
-            ->where('wc.employee = :employee')
-            ->andWhere('wc.validated = true')
-            ->orderBy('wc.validatedAt', 'DESC')
-            ->setMaxResults(1)
-            ->setParameter('employee', $user)
-            ->getQuery()
-            ->getOneOrNullResult();
-
-        $pendingRevenueData = $this->calculatePendingCommission($user, $lastValidatedCommission, $revenueRepository);
-        $pendingClientsCount = $pendingRevenueData['clientsCount'];
+        // No need for additional pending calculation since we use current week commission
 
         // Get client count for current month
         $monthlyClientCount = count($monthlyRevenues);
@@ -230,9 +238,9 @@ final class EmployeeDashboardController extends AbstractController
 
     private function getCommissionHistory($user, WeeklyCommissionRepository $weeklyCommissionRepository): array
     {
-        // Get validated commissions for the last 12 weeks
+        // Get all commissions for the last 12 weeks (validated or not, paid or not)
         return $weeklyCommissionRepository->findBy(
-            ['employee' => $user, 'validated' => true],
+            ['employee' => $user],
             ['weekStart' => 'DESC'],
             12
         );
