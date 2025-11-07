@@ -76,8 +76,20 @@ final class EmployeeDashboardController extends AbstractController
             return $sum + (float)$commission->getTotalCommission();
         }, 0);
 
-        // Calculate pending commission (current week's unvalidated commission)
-        $pendingCommission = $currentWeekCommission ? (float)$currentWeekCommission->getTotalCommission() : 0;
+        // Calculate pending commission (revenues since last validation)
+        $lastValidatedCommission = $weeklyCommissionRepository->createQueryBuilder('wc')
+            ->where('wc.employee = :employee')
+            ->andWhere('wc.validated = true')
+            ->orderBy('wc.validatedAt', 'DESC')
+            ->setMaxResults(1)
+            ->setParameter('employee', $user)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        $pendingRevenueData = $this->calculatePendingCommission($user, $lastValidatedCommission, $revenueRepository);
+        $pendingCommission = $pendingRevenueData['commission'];
+        $pendingRevenueHt = $pendingRevenueData['revenueHt'];
+        $pendingClientsCount = $pendingRevenueData['clientsCount'];
 
         // Get client count for current month
         $monthlyClientCount = count($monthlyRevenues);
@@ -135,6 +147,8 @@ final class EmployeeDashboardController extends AbstractController
             'totalMonthlyRevenue' => $totalMonthlyRevenue,
             'totalCommission' => $totalCommission,
             'pendingCommission' => $pendingCommission,
+            'pendingRevenueHt' => $pendingRevenueHt,
+            'pendingClientsCount' => $pendingClientsCount,
             'commissionPercentage' => $commissionPercentage,
             'totalCaHt' => $totalCaHt,
             'monthlyClientCount' => $monthlyClientCount,
@@ -215,5 +229,41 @@ final class EmployeeDashboardController extends AbstractController
             ['weekStart' => 'DESC'],
             12
         );
+    }
+
+    private function calculatePendingCommission($user, $lastValidatedCommission, RevenueRepository $revenueRepository): array
+    {
+        $startDate = null;
+
+        if ($lastValidatedCommission) {
+            // Start from the date of last validation
+            $startDate = $lastValidatedCommission->getValidatedAt();
+        } else {
+            // If no validation yet, start from beginning of current month
+            $startDate = new \DateTime('first day of this month');
+        }
+
+        // Get revenues since last validation
+        $pendingRevenues = $revenueRepository->createQueryBuilder('r')
+            ->where('r.employee = :employee')
+            ->andWhere('r.date >= :startDate')
+            ->setParameter('employee', $user)
+            ->setParameter('startDate', $startDate)
+            ->getQuery()
+            ->getResult();
+
+        $totalRevenueHt = array_reduce($pendingRevenues, function($sum, $revenue) {
+            return $sum + $revenue->getAmountHt();
+        }, 0);
+
+        $commissionPercentage = (float) ($user->getCommissionPercentage() ?? 0);
+        $totalCommission = $totalRevenueHt * ($commissionPercentage / 100);
+        $clientsCount = count($pendingRevenues);
+
+        return [
+            'revenueHt' => $totalRevenueHt,
+            'commission' => $totalCommission,
+            'clientsCount' => $clientsCount
+        ];
     }
 }

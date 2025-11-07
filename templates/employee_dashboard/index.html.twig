@@ -144,17 +144,17 @@
             <div class="card bg-success text-white stats-card" >
                 <div class="card-body text-center">
                     <h5 class="card-title">Commission du Mois</h5>
-                    <h3 class="card-text">{{ pendingCommission|number_format(2, ',', ' ') }} €</h3>
-                    <small>Commission à {{ commissionPercentage }}% (en attente)</small>
+                    <h3 class="card-text">{{ totalCommission|number_format(2, ',', ' ') }} €</h3>
+                    <small>Commission validée du mois</small>
                 </div>
             </div>
         </div>
         <div class="col-md-4 d-flex justify-content-center" style="width: 30%; height: 34vh;">
             <div class="card bg-info text-white stats-card" >
                 <div class="card-body text-center">
-                    <h5 class="card-title">Chiffre d'Affaires HT</h5>
-                    <h3 class="card-text" id="totalCaHt">{{ totalCaHt|number_format(2, ',', ' ') }} €</h3>
-                    <small>Accumulé aujourd'hui</small>
+                    <h5 class="card-title">Commission à 50% (en attente)</h5>
+                    <h3 class="card-text">{{ pendingCommission|number_format(2, ',', ' ') }} €</h3>
+                    <small>{{ pendingClientsCount }} clients depuis dernière validation</small>
                 </div>
             </div>
         </div>
@@ -273,6 +273,24 @@
                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#commissionHistoryModal">
                             Voir l'historique
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Commission Non Validée</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <strong>Revenus du Mois: {{ pendingRevenueHt|number_format(2, ',', ' ') }} €</strong>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted">{{ pendingClientsCount }} clients depuis dernière validation</small>
+                    </div>
+                    <div class="mb-3">
+                        <span class="badge bg-warning">Commission: {{ pendingCommission|number_format(2, ',', ' ') }} €</span>
                     </div>
                 </div>
             </div>
