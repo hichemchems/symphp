@@ -38,7 +38,7 @@ final class EmployeeDashboardController extends AbstractController
             ['date' => 'DESC']
         );
 
-        // Calculate total revenue for current month
+        // Calculate total revenue HT for current month (all revenues, not just validated)
         $startOfMonth = new \DateTime('first day of this month');
         $endOfMonth = new \DateTime('last day of this month');
         $monthlyRevenues = $revenueRepository->createQueryBuilder('r')
@@ -50,7 +50,7 @@ final class EmployeeDashboardController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        $totalMonthlyRevenue = array_reduce($monthlyRevenues, function($sum, $revenue) {
+        $totalMonthlyRevenueHt = array_reduce($monthlyRevenues, function($sum, $revenue) {
             return $sum + $revenue->getAmountHt(); // Use HT for commission calculation
         }, 0);
 
@@ -187,9 +187,10 @@ final class EmployeeDashboardController extends AbstractController
         return $this->render('employee_dashboard/index.html.twig', [
             'todayAppointments' => $todayAppointments,
             'recentRevenues' => $recentRevenues,
-            'totalMonthlyRevenue' => $totalMonthlyRevenue,
+            'totalMonthlyRevenueHt' => $totalMonthlyRevenueHt,
             'totalCommission' => $totalCommission,
             'validatedCommission' => $validatedCommission,
+            'validatedRevenueHt' => $validatedRevenueHt,
             'pendingCommission' => $pendingCommission,
             'pendingRevenueHt' => $pendingRevenueHt,
             'pendingClientsCount' => $pendingClientsCount,
