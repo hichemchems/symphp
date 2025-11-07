@@ -60,11 +60,11 @@ final class EmployeeDashboardController extends AbstractController
         // Get current week commission for validation
         $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
 
-        // Calculate total commission for the month (sum of all weekly commissions for current month, validated or not)
-        // But exclude duplicates by using DISTINCT on weekStart/weekEnd
-        $allMonthlyCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+        // Calculate validated revenue HT for the month (sum of totalRevenueHt from validated weekly commissions)
+        $validatedMonthlyCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
             ->select('wc')
             ->where('wc.employee = :employee')
+            ->andWhere('wc.validated = true')
             ->andWhere('wc.weekStart >= :startOfMonth')
             ->andWhere('wc.weekEnd <= :endOfMonth')
             ->setParameter('employee', $user)
@@ -75,17 +75,20 @@ final class EmployeeDashboardController extends AbstractController
             ->getResult();
 
         // Remove duplicates by week (keep the latest one)
-        $uniqueCommissions = [];
-        foreach ($allMonthlyCommissions as $commission) {
+        $uniqueValidatedCommissions = [];
+        foreach ($validatedMonthlyCommissions as $commission) {
             $weekKey = $commission->getWeekStart()->format('Y-m-d') . '-' . $commission->getWeekEnd()->format('Y-m-d');
-            if (!isset($uniqueCommissions[$weekKey]) || $commission->getId() > $uniqueCommissions[$weekKey]->getId()) {
-                $uniqueCommissions[$weekKey] = $commission;
+            if (!isset($uniqueValidatedCommissions[$weekKey]) || $commission->getId() > $uniqueValidatedCommissions[$weekKey]->getId()) {
+                $uniqueValidatedCommissions[$weekKey] = $commission;
             }
         }
 
-        $totalCommission = array_reduce($uniqueCommissions, function($sum, $commission) {
-            return $sum + (float)$commission->getTotalCommission();
+        $validatedRevenueHt = array_reduce($uniqueValidatedCommissions, function($sum, $commission) {
+            return $sum + (float)$commission->getTotalRevenueHt();
         }, 0);
+
+        // Calculate total commission for the month (based on validated revenues)
+        $totalCommission = $validatedRevenueHt * ($commissionPercentage / 100);
 
         // Calculate paid commission for the month (sum of paid weekly commissions for current month)
         // Exclude duplicates
@@ -131,7 +134,7 @@ final class EmployeeDashboardController extends AbstractController
         // Get client count for current month
         $monthlyClientCount = count($monthlyRevenues);
 
-        // Calculate today's CA HT
+        // Calculate today's CA HT (revenus d'aujourd'hui)
         $today = new \DateTime('today');
         $tomorrow = new \DateTime('tomorrow');
         $todayRevenues = $revenueRepository->createQueryBuilder('r')
@@ -146,6 +149,9 @@ final class EmployeeDashboardController extends AbstractController
         $totalCaHt = array_reduce($todayRevenues, function($sum, $revenue) {
             return $sum + $revenue->getAmountHt();
         }, 0);
+
+        // Calculate today's commission (based on today's revenues)
+        $todayCommission = $totalCaHt * ($commissionPercentage / 100);
 
         // Get all available packages
         $packages = $packageRepository->findAll();
@@ -189,6 +195,7 @@ final class EmployeeDashboardController extends AbstractController
             'pendingClientsCount' => $pendingClientsCount,
             'commissionPercentage' => $commissionPercentage,
             'totalCaHt' => $totalCaHt,
+            'todayCommission' => $todayCommission,
             'monthlyClientCount' => $monthlyClientCount,
             'packagesWithCommission' => $packagesWithCommission,
             'weeklyStats' => $weeklyStats,
