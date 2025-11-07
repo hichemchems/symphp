@@ -60,7 +60,10 @@ final class EmployeeDashboardController extends AbstractController
         // Get current week commission for validation
         $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
 
-        // Calculate total commission for the month (sum of validated weekly commissions for current month)
+        // Calculate total commission for the month (total revenues × commission rate)
+        $totalCommission = $totalMonthlyRevenue * ($commissionPercentage / 100);
+
+        // Calculate validated commission for the month (sum of validated weekly commissions for current month)
         $validatedCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
             ->andWhere('wc.validated = true')
@@ -72,7 +75,7 @@ final class EmployeeDashboardController extends AbstractController
             ->getQuery()
             ->getResult();
 
-        $totalCommission = array_reduce($validatedCommissions, function($sum, $commission) {
+        $validatedCommission = array_reduce($validatedCommissions, function($sum, $commission) {
             return $sum + (float)$commission->getTotalCommission();
         }, 0);
 
@@ -146,6 +149,7 @@ final class EmployeeDashboardController extends AbstractController
             'recentRevenues' => $recentRevenues,
             'totalMonthlyRevenue' => $totalMonthlyRevenue,
             'totalCommission' => $totalCommission,
+            'validatedCommission' => $validatedCommission,
             'pendingCommission' => $pendingCommission,
             'pendingRevenueHt' => $pendingRevenueHt,
             'pendingClientsCount' => $pendingClientsCount,

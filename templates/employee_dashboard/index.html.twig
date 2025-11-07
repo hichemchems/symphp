@@ -145,6 +145,15 @@
                 <div class="card-body text-center">
                     <h5 class="card-title">Commission du Mois</h5>
                     <h3 class="card-text">{{ totalCommission|number_format(2, ',', ' ') }} €</h3>
+                    <small>Commission totale du mois</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center" style="width: 30%; height: 34vh;">
+            <div class="card bg-warning text-white stats-card" >
+                <div class="card-body text-center">
+                    <h5 class="card-title">Commission Validée</h5>
+                    <h3 class="card-text">{{ validatedCommission|number_format(2, ',', ' ') }} €</h3>
                     <small>Commission validée du mois</small>
                 </div>
             </div>
