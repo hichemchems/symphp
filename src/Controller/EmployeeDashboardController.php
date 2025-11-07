@@ -63,10 +63,10 @@ final class EmployeeDashboardController extends AbstractController
         // Calculate total commission for the month (total revenues × commission rate)
         $totalCommission = $totalMonthlyRevenue * ($commissionPercentage / 100);
 
-        // Calculate validated commission for the month (sum of validated weekly commissions for current month)
+        // Calculate validated commission for the month (sum of paid weekly commissions for current month)
         $validatedCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
-            ->andWhere('wc.validated = true')
+            ->andWhere('wc.paid = true')
             ->andWhere('wc.weekStart >= :startOfMonth')
             ->andWhere('wc.weekEnd <= :endOfMonth')
             ->setParameter('employee', $user)
@@ -79,7 +79,12 @@ final class EmployeeDashboardController extends AbstractController
             return $sum + (float)$commission->getTotalCommission();
         }, 0);
 
-        // Calculate pending commission (revenues since last validation)
+        // Calculate pending commission (total commission - paid commission)
+        $pendingCommission = $totalCommission - $validatedCommission;
+        $pendingRevenueHt = $pendingCommission / ($commissionPercentage / 100); // Reverse calculate HT
+        $pendingClientsCount = 0; // Will be calculated properly below
+
+        // Get actual pending data for display
         $lastValidatedCommission = $weeklyCommissionRepository->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
             ->andWhere('wc.validated = true')
@@ -90,8 +95,6 @@ final class EmployeeDashboardController extends AbstractController
             ->getOneOrNullResult();
 
         $pendingRevenueData = $this->calculatePendingCommission($user, $lastValidatedCommission, $revenueRepository);
-        $pendingCommission = $pendingRevenueData['commission'];
-        $pendingRevenueHt = $pendingRevenueData['revenueHt'];
         $pendingClientsCount = $pendingRevenueData['clientsCount'];
 
         // Get client count for current month

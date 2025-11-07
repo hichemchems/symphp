@@ -152,16 +152,16 @@
         <div class="col-md-4 d-flex justify-content-center" style="width: 30%; height: 34vh;">
             <div class="card bg-warning text-white stats-card" >
                 <div class="card-body text-center">
-                    <h5 class="card-title">Commission Validée</h5>
+                    <h5 class="card-title">Commission Payée</h5>
                     <h3 class="card-text">{{ validatedCommission|number_format(2, ',', ' ') }} €</h3>
-                    <small>Commission validée du mois</small>
+                    <small>Commission payée ce mois-ci</small>
                 </div>
             </div>
         </div>
         <div class="col-md-4 d-flex justify-content-center" style="width: 30%; height: 34vh;">
             <div class="card bg-info text-white stats-card" >
                 <div class="card-body text-center">
-                    <h5 class="card-title">Commission à 50% (en attente)</h5>
+                    <h5 class="card-title">Reste à Payer</h5>
                     <h3 class="card-text">{{ pendingCommission|number_format(2, ',', ' ') }} €</h3>
                     <small>{{ pendingClientsCount }} clients depuis dernière validation</small>
                 </div>
