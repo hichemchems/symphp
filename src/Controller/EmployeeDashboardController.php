@@ -57,21 +57,8 @@ final class EmployeeDashboardController extends AbstractController
         // Get commission percentage
         $commissionPercentage = (float) ($user->getCommissionPercentage() ?? 0);
 
-        // Calculate commission for current month (sum of unvalidated weekly commissions for current month only)
-        $unvalidatedCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
-            ->where('wc.employee = :employee')
-            ->andWhere('wc.validated = false')
-            ->andWhere('wc.weekStart >= :startOfMonth')
-            ->andWhere('wc.weekEnd <= :endOfMonth')
-            ->setParameter('employee', $user)
-            ->setParameter('startOfMonth', $startOfMonth)
-            ->setParameter('endOfMonth', $endOfMonth)
-            ->getQuery()
-            ->getResult();
-
-        $totalCommission = array_reduce($unvalidatedCommissions, function($sum, $commission) {
-            return $sum + (float)$commission->getTotalCommission();
-        }, 0);
+        // Calculate commission based on revenue HT and commission percentage
+        $totalCommission = $totalMonthlyRevenue * ($commissionPercentage / 100);
 
         // Calculate pending commission (same as totalCommission for now)
         $pendingCommission = $totalCommission;
