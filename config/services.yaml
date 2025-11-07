@@ -25,3 +25,6 @@ services:
 
     app.login_success_handler:
         class: App\Security\LoginSuccessHandler
+
+    App\Command\GenerateWeeklyCommissionsCommand:
+        tags: ['console.command']
