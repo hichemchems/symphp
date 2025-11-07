@@ -134,14 +134,15 @@ final class EmployeeDashboardController extends AbstractController
         // Get client count for current month
         $monthlyClientCount = count($monthlyRevenues);
 
-        // Calculate today's CA HT (revenus d'aujourd'hui)
+        // Calculate today's CA HT (revenus d'aujourd'hui depuis 00:05)
         $today = new \DateTime('today');
+        $todayStart = new \DateTime('today 00:05');
         $tomorrow = new \DateTime('tomorrow');
         $todayRevenues = $revenueRepository->createQueryBuilder('r')
             ->where('r.employee = :employee')
             ->andWhere('r.date >= :start AND r.date < :end')
             ->setParameter('employee', $user)
-            ->setParameter('start', $today)
+            ->setParameter('start', $todayStart)
             ->setParameter('end', $tomorrow)
             ->getQuery()
             ->getResult();
@@ -150,8 +151,11 @@ final class EmployeeDashboardController extends AbstractController
             return $sum + $revenue->getAmountHt();
         }, 0);
 
-        // Calculate today's commission (based on today's revenues)
+        // Calculate today's commission (based on today's revenues depuis 00:05)
         $todayCommission = $totalCaHt * ($commissionPercentage / 100);
+
+        // Calculate clients today
+        $todayClientsCount = count($todayRevenues);
 
         // Get all available packages
         $packages = $packageRepository->findAll();
@@ -197,6 +201,7 @@ final class EmployeeDashboardController extends AbstractController
             'commissionPercentage' => $commissionPercentage,
             'totalCaHt' => $totalCaHt,
             'todayCommission' => $todayCommission,
+            'todayClientsCount' => $todayClientsCount,
             'monthlyClientCount' => $monthlyClientCount,
             'packagesWithCommission' => $packagesWithCommission,
             'weeklyStats' => $weeklyStats,

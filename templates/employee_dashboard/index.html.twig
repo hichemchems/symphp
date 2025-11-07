@@ -136,7 +136,8 @@
                 <div class="card-body text-center">
                     <h5 class="card-title">CA Aujourd'hui</h5>
                     <h3 class="card-text">{{ totalCaHt|number_format(2, ',', ' ') }} €</h3>
-                    <small>Commission: {{ todayCommission|number_format(2, ',', ' ') }} €</small>
+                    <small>Commission: {{ todayCommission|number_format(2, ',', ' ') }} €</small><br>
+                    <small>{{ todayClientsCount }} clients aujourd'hui</small>
                 </div>
             </div>
         </div>
@@ -162,7 +163,7 @@
             <div class="card bg-info text-white stats-card" >
                 <div class="card-body text-center">
                     <h5 class="card-title">Reste à Payer</h5>
-                    <h3 class="card-text">{{ pendingCommission|number_format(2, ',', ' ') }} €</h3>
+                    <h3 class="card-text">{{ (totalCommission - validatedCommission)|number_format(2, ',', ' ') }} €</h3>
                     <small>{{ pendingClientsCount }} clients depuis dernière validation</small>
                 </div>
             </div>
