@@ -269,11 +269,45 @@
                 </div>
                 <div class="card-body">
                     <p class="text-muted">Historique des commissions validées et en cours de paiement</p>
-                    <div class="text-center">
+                    <div class="text-center mb-3">
                         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#commissionHistoryModal">
                             Voir l'historique complet
                         </button>
                     </div>
+                    {% if commissionHistory %}
+                        <div class="table-responsive">
+                            <table class="table table-striped table-sm">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center">Semaine</th>
+                                        <th class="text-center">Revenus HT</th>
+                                        <th class="text-center">Commission</th>
+                                        <th class="text-center">Clients</th>
+                                        <th class="text-center">Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for commission in commissionHistory|slice(0, 3) %}
+                                        <tr>
+                                            <td class="text-center">{{ commission.weekStart|date('d/m') }} - {{ commission.weekEnd|date('d/m') }}</td>
+                                            <td class="text-center">{{ commission.totalRevenueHt|number_format(2, ',', ' ') }} €</td>
+                                            <td class="text-center">{{ commission.totalCommission|number_format(2, ',', ' ') }} €</td>
+                                            <td class="text-center">{{ commission.clientsCount }}</td>
+                                            <td class="text-center">
+                                                {% if commission.paid %}
+                                                    <span class="badge bg-success">Payée</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">En attente</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">Aucune commission validée trouvée.</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
