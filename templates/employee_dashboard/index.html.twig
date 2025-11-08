@@ -86,6 +86,24 @@
     .modal-content {
         border-radius: 0;
     }
+
+    /* Logout button styling for mobile */
+    .logout-btn-mobile {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.8rem !important;
+        border: none !important;
+        background: transparent !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    .logout-btn-mobile:hover {
+        color: #fff !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .logout-btn-mobile i {
+        font-size: 1.2rem !important;
+    }
 }
 
 @media (max-width: 480px) {
@@ -122,8 +140,11 @@
                     <h1 class="mb-4 text-white">Tableau de Bord Employé</h1>
                     <p class="text-white">Bienvenue, {{ app.user.firstName }} {{ app.user.lastName }}</p>
                 </div>
-                <a href="{{ path('app_logout') }}" class="btn btn-outline-light">
+                <a href="{{ path('app_logout') }}" class="btn btn-outline-light logout-btn-mobile d-none d-md-inline-block">
                     <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
+                </a>
+                <a href="{{ path('app_logout') }}" class="btn logout-btn-mobile d-md-none" title="Déconnexion">
+                    <i class="fas fa-sign-out-alt"></i>
                 </a>
             </div>
         </div>
