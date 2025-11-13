@@ -6,11 +6,16 @@ use App\Entity\WeeklyCommission;
 use App\Repository\EmployeeRepository;
 use App\Repository\RevenueRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
+#[AsCommand(
+    name: 'app:generate-weekly-commissions',
+    description: 'Generates weekly commissions for all employees',
+)]
 class GenerateWeeklyCommissionsCommand extends Command
 {
     public function __construct(
@@ -21,11 +26,7 @@ class GenerateWeeklyCommissionsCommand extends Command
         parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        $this->setName('app:generate-weekly-commissions');
-        $this->setDescription('Generates weekly commissions for all employees');
-    }
+
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
@@ -40,18 +41,8 @@ class GenerateWeeklyCommissionsCommand extends Command
 
         foreach ($employees as $employee) {
             // Check if commission already exists for this week
-            $existingCommissions = $this->entityManager->getRepository(WeeklyCommission::class)
-                ->createQueryBuilder('wc')
-                ->where('wc.employee = :employee')
-                ->andWhere('wc.weekStart = :weekStart')
-                ->andWhere('wc.weekEnd = :weekEnd')
-                ->setParameter('employee', $employee)
-                ->setParameter('weekStart', $currentMonday)
-                ->setParameter('weekEnd', $currentSunday)
-                ->getQuery()
-                ->getResult();
-
-            $existingCommission = count($existingCommissions) > 0 ? $existingCommissions[0] : null;
+            $existingCommission = $this->entityManager->getRepository(WeeklyCommission::class)
+                ->findByEmployeeAndWeek($employee, $currentMonday, $currentSunday);
 
             if ($existingCommission && $existingCommission->isPaid()) {
                 $io->note(sprintf('Commission already paid for employee %s for week %s to %s',
@@ -83,19 +74,25 @@ class GenerateWeeklyCommissionsCommand extends Command
             $commissionPercentage = (float) ($employee->getCommissionPercentage() ?? 0);
             $totalCommission = $revenueHt * ($commissionPercentage / 100);
 
-            if ($existingCommission && !$existingCommission->isPaid()) {
-                // Update existing non-paid commission
-                $existingCommission->setTotalCommission((string) $totalCommission);
-                $existingCommission->setTotalRevenueHt((string) $revenueHt);
-                $existingCommission->setClientsCount($clientsCount);
+            if ($existingCommission) {
+                // Update existing commission only if not paid
+                if (!$existingCommission->isPaid()) {
+                    $existingCommission->setTotalCommission((string) $totalCommission);
+                    $existingCommission->setTotalRevenueHt((string) $revenueHt);
+                    $existingCommission->setClientsCount($clientsCount);
 
-                $io->note(sprintf('Updated commission for employee %s: €%s for %d clients',
-                    $employee->getFirstName() . ' ' . $employee->getLastName(),
-                    number_format($totalCommission, 2, ',', ' '),
-                    $clientsCount
-                ));
+                    $io->note(sprintf('Updated commission for employee %s: €%s for %d clients',
+                        $employee->getFirstName() . ' ' . $employee->getLastName(),
+                        number_format($totalCommission, 2, ',', ' '),
+                        $clientsCount
+                    ));
+                } else {
+                    $io->note(sprintf('Commission already paid for employee %s, skipping update',
+                        $employee->getFirstName() . ' ' . $employee->getLastName()
+                    ));
+                }
             } else {
-                // Create new commission entry if none exists or if existing is paid
+                // Create new commission entry if none exists
                 $weeklyCommission = new WeeklyCommission();
                 $weeklyCommission->setEmployee($employee);
                 $weeklyCommission->setTotalCommission((string) $totalCommission);

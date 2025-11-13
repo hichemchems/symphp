@@ -18,15 +18,18 @@ class WeeklyCommissionRepository extends ServiceEntityRepository
 
     public function findByEmployeeAndWeek(\App\Entity\Employee $employee, \DateTime $weekStart, \DateTime $weekEnd): ?WeeklyCommission
     {
-        return $this->createQueryBuilder('wc')
+        $results = $this->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
             ->andWhere('wc.weekStart = :weekStart')
             ->andWhere('wc.weekEnd = :weekEnd')
+            ->orderBy('wc.id', 'DESC')
             ->setParameter('employee', $employee)
             ->setParameter('weekStart', $weekStart)
             ->setParameter('weekEnd', $weekEnd)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getResult();
+
+        return $results ? $results[0] : null;
     }
 
     public function findUnvalidatedCommissions(): array

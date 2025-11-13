@@ -38,76 +38,111 @@ final class EmployeeDashboardController extends AbstractController
             ['date' => 'DESC']
         );
 
-        // Calculate total revenue for current week
-        $startOfWeek = new \DateTime('monday this week');
-        $endOfWeek = new \DateTime('sunday this week');
-        $weeklyRevenues = $revenueRepository->createQueryBuilder('r')
+        // Calculate total revenue HT for current month (all revenues, not just validated)
+        $startOfMonth = new \DateTime('first day of this month');
+        $endOfMonth = new \DateTime('last day of this month');
+        $monthlyRevenues = $revenueRepository->createQueryBuilder('r')
             ->where('r.employee = :employee')
             ->andWhere('r.date >= :start AND r.date <= :end')
             ->setParameter('employee', $user)
-            ->setParameter('start', $startOfWeek)
-            ->setParameter('end', $endOfWeek)
+            ->setParameter('start', $startOfMonth)
+            ->setParameter('end', $endOfMonth)
             ->getQuery()
             ->getResult();
 
-        $totalWeeklyRevenue = array_reduce($weeklyRevenues, function($sum, $revenue) {
+        $totalMonthlyRevenueHt = array_reduce($monthlyRevenues, function($sum, $revenue) {
             return $sum + $revenue->getAmountHt(); // Use HT for commission calculation
         }, 0);
 
         // Get commission percentage
         $commissionPercentage = (float) ($user->getCommissionPercentage() ?? 0);
 
-        // Calculate commission for current week (unvalidated weekly commission)
+        // Get current week commission for validation
         $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
-        $totalCommission = $currentWeekCommission ? (float)$currentWeekCommission->getTotalCommission() : 0;
 
-        // Calculate pending commission (unvalidated commissions)
-        $pendingCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
-            ->where('wc.employee = :employee')
-            ->andWhere('wc.validated = false')
-            ->setParameter('employee', $user)
-            ->getQuery()
-            ->getResult();
-
-        $pendingCommission = array_reduce($pendingCommissions, function($sum, $commission) {
-            return $sum + (float)$commission->getTotalCommission();
-        }, 0);
-
-        // Calculate validated and paid commissions
-        $validatedCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+        // Calculate validated revenue HT for the month (sum of totalRevenueHt from validated weekly commissions)
+        $validatedMonthlyCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+            ->select('wc')
             ->where('wc.employee = :employee')
             ->andWhere('wc.validated = true')
-            ->andWhere('wc.paid = false')
+            ->andWhere('wc.weekStart >= :startOfMonth')
+            ->andWhere('wc.weekEnd <= :endOfMonth')
             ->setParameter('employee', $user)
+            ->setParameter('startOfMonth', $startOfMonth)
+            ->setParameter('endOfMonth', $endOfMonth)
+            ->orderBy('wc.weekStart', 'ASC')
             ->getQuery()
             ->getResult();
 
-        $validatedCommission = array_reduce($validatedCommissions, function($sum, $commission) {
-            return $sum + (float)$commission->getTotalCommission();
+        // Remove duplicates by week (keep the latest one)
+        $uniqueValidatedCommissions = [];
+        foreach ($validatedMonthlyCommissions as $commission) {
+            $weekKey = $commission->getWeekStart()->format('Y-m-d') . '-' . $commission->getWeekEnd()->format('Y-m-d');
+            if (!isset($uniqueValidatedCommissions[$weekKey]) || $commission->getId() > $uniqueValidatedCommissions[$weekKey]->getId()) {
+                $uniqueValidatedCommissions[$weekKey] = $commission;
+            }
+        }
+
+        $validatedRevenueHt = array_reduce($uniqueValidatedCommissions, function($sum, $commission) {
+            return $sum + (float)$commission->getTotalRevenueHt();
         }, 0);
 
+        // Calculate total commission for the month (based on validated revenues)
+        $totalCommission = $validatedRevenueHt * ($commissionPercentage / 100);
+
+        // Calculate paid commission for the month (sum of paid weekly commissions for current month)
+        // Exclude duplicates
         $paidCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
             ->andWhere('wc.paid = true')
+            ->andWhere('wc.weekStart >= :startOfMonth')
+            ->andWhere('wc.weekEnd <= :endOfMonth')
             ->setParameter('employee', $user)
+            ->setParameter('startOfMonth', $startOfMonth)
+            ->setParameter('endOfMonth', $endOfMonth)
+            ->orderBy('wc.weekStart', 'ASC')
             ->getQuery()
             ->getResult();
 
-        $paidCommission = array_reduce($paidCommissions, function($sum, $commission) {
+        // Remove duplicates by week (keep the latest one)
+        $uniquePaidCommissions = [];
+        foreach ($paidCommissions as $commission) {
+            $weekKey = $commission->getWeekStart()->format('Y-m-d') . '-' . $commission->getWeekEnd()->format('Y-m-d');
+            if (!isset($uniquePaidCommissions[$weekKey]) || $commission->getId() > $uniquePaidCommissions[$weekKey]->getId()) {
+                $uniquePaidCommissions[$weekKey] = $commission;
+            }
+        }
+
+        $validatedCommission = array_reduce($uniquePaidCommissions, function($sum, $commission) {
             return $sum + (float)$commission->getTotalCommission();
         }, 0);
 
-        // Get client count for current week
-        $weeklyClientCount = count($weeklyRevenues);
+        // Calculate pending commission (current week's commission if not validated)
+        $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
+        if ($currentWeekCommission && !$currentWeekCommission->isValidated()) {
+            $pendingCommission = (float)$currentWeekCommission->getTotalCommission();
+            $pendingRevenueHt = (float)$currentWeekCommission->getTotalRevenueHt();
+            $pendingClientsCount = $currentWeekCommission->getClientsCount();
+        } else {
+            $pendingCommission = 0;
+            $pendingRevenueHt = 0;
+            $pendingClientsCount = 0;
+        }
 
-        // Calculate today's CA HT
+        // No need for additional pending calculation since we use current week commission
+
+        // Get client count for current month
+        $monthlyClientCount = count($monthlyRevenues);
+
+        // Calculate today's CA HT (revenus d'aujourd'hui depuis 00:05)
         $today = new \DateTime('today');
+        $todayStart = new \DateTime('today 00:05');
         $tomorrow = new \DateTime('tomorrow');
         $todayRevenues = $revenueRepository->createQueryBuilder('r')
             ->where('r.employee = :employee')
             ->andWhere('r.date >= :start AND r.date < :end')
             ->setParameter('employee', $user)
-            ->setParameter('start', $today)
+            ->setParameter('start', $todayStart)
             ->setParameter('end', $tomorrow)
             ->getQuery()
             ->getResult();
@@ -115,6 +150,12 @@ final class EmployeeDashboardController extends AbstractController
         $totalCaHt = array_reduce($todayRevenues, function($sum, $revenue) {
             return $sum + $revenue->getAmountHt();
         }, 0);
+
+        // Calculate today's commission (based on today's revenues depuis 00:05)
+        $todayCommission = $totalCaHt * ($commissionPercentage / 100);
+
+        // Calculate clients today
+        $todayClientsCount = count($todayRevenues);
 
         // Get all available packages
         $packages = $packageRepository->findAll();
@@ -144,23 +185,24 @@ final class EmployeeDashboardController extends AbstractController
             12 // Last 12 months
         );
 
-        // Get current week commission for validation
-        $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
-
         // Get commission history (validated commissions)
         $commissionHistory = $this->getCommissionHistory($user, $weeklyCommissionRepository);
 
         return $this->render('employee_dashboard/index.html.twig', [
             'todayAppointments' => $todayAppointments,
             'recentRevenues' => $recentRevenues,
-            'totalWeeklyRevenue' => $totalWeeklyRevenue,
+            'totalMonthlyRevenueHt' => $totalMonthlyRevenueHt,
             'totalCommission' => $totalCommission,
-            'pendingCommission' => $pendingCommission,
             'validatedCommission' => $validatedCommission,
-            'paidCommission' => $paidCommission,
+            'validatedRevenueHt' => $validatedRevenueHt,
+            'pendingCommission' => $pendingCommission,
+            'pendingRevenueHt' => $pendingRevenueHt,
+            'pendingClientsCount' => $pendingClientsCount,
             'commissionPercentage' => $commissionPercentage,
             'totalCaHt' => $totalCaHt,
-            'weeklyClientCount' => $weeklyClientCount,
+            'todayCommission' => $todayCommission,
+            'todayClientsCount' => $todayClientsCount,
+            'monthlyClientCount' => $monthlyClientCount,
             'packagesWithCommission' => $packagesWithCommission,
             'weeklyStats' => $weeklyStats,
             'monthlyStats' => $monthlyStats,
@@ -232,11 +274,59 @@ final class EmployeeDashboardController extends AbstractController
 
     private function getCommissionHistory($user, WeeklyCommissionRepository $weeklyCommissionRepository): array
     {
-        // Get validated commissions for the last 12 weeks
-        return $weeklyCommissionRepository->findBy(
-            ['employee' => $user, 'validated' => true],
+        // Get all commissions for the last 12 weeks (validated or not, paid or not)
+        $allCommissions = $weeklyCommissionRepository->findBy(
+            ['employee' => $user],
             ['weekStart' => 'DESC'],
             12
         );
+
+        // Remove duplicates by week (keep the latest one)
+        $uniqueCommissions = [];
+        foreach ($allCommissions as $commission) {
+            $weekKey = $commission->getWeekStart()->format('Y-m-d') . '-' . $commission->getWeekEnd()->format('Y-m-d');
+            if (!isset($uniqueCommissions[$weekKey]) || $commission->getId() > $uniqueCommissions[$weekKey]->getId()) {
+                $uniqueCommissions[$weekKey] = $commission;
+            }
+        }
+
+        // Return only the unique commissions, sorted by weekStart DESC
+        return array_values(array_slice($uniqueCommissions, 0, 12));
+    }
+
+    private function calculatePendingCommission($user, $lastValidatedCommission, RevenueRepository $revenueRepository): array
+    {
+        $startDate = null;
+
+        if ($lastValidatedCommission) {
+            // Start from the date of last validation
+            $startDate = $lastValidatedCommission->getValidatedAt();
+        } else {
+            // If no validation yet, start from beginning of current month
+            $startDate = new \DateTime('first day of this month');
+        }
+
+        // Get revenues since last validation
+        $pendingRevenues = $revenueRepository->createQueryBuilder('r')
+            ->where('r.employee = :employee')
+            ->andWhere('r.date >= :startDate')
+            ->setParameter('employee', $user)
+            ->setParameter('startDate', $startDate)
+            ->getQuery()
+            ->getResult();
+
+        $totalRevenueHt = array_reduce($pendingRevenues, function($sum, $revenue) {
+            return $sum + $revenue->getAmountHt();
+        }, 0);
+
+        $commissionPercentage = (float) ($user->getCommissionPercentage() ?? 0);
+        $totalCommission = $totalRevenueHt * ($commissionPercentage / 100);
+        $clientsCount = count($pendingRevenues);
+
+        return [
+            'revenueHt' => $totalRevenueHt,
+            'commission' => $totalCommission,
+            'clientsCount' => $clientsCount
+        ];
     }
 }

@@ -332,22 +332,9 @@ final class AdminDashboardController extends AbstractController
             $totalRevenue += (float) $revenue->getAmountTtc();
         }
 
-        // Calculate commission from weekly commissions for the period (only unvalidated ones)
-        $weeklyCommissionRepository = $entityManager->getRepository(\App\Entity\WeeklyCommission::class);
-        $weeklyCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
-            ->where('wc.employee = :employee')
-            ->andWhere('wc.validated = false')
-            ->andWhere('wc.weekStart >= :start AND wc.weekEnd <= :end')
-            ->setParameter('employee', $employee)
-            ->setParameter('start', $startDate)
-            ->setParameter('end', $endDate)
-            ->getQuery()
-            ->getResult();
-
-        $totalCommission = 0;
-        foreach ($weeklyCommissions as $commission) {
-            $totalCommission += (float) $commission->getTotalCommission();
-        }
+        // Calculate commission based on revenue HT and commission percentage
+        $commissionPercentage = (float) ($employee->getCommissionPercentage() ?? 0);
+        $totalCommission = $totalRevenueHt * ($commissionPercentage / 100);
 
         return [
             'revenue' => $totalRevenue,
