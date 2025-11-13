@@ -11,6 +11,25 @@
     width: 100% !important;
 }
 
+/* Burger Menu Styles */
+.burger-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid #495057;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    min-width: 200px;
+    z-index: 1050;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.burger-menu-btn {
+    font-size: 1.2rem;
+    padding: 0.5rem 0.75rem;
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 850px) {
 
@@ -27,9 +46,6 @@
         font-weight:2rem;
     }
 
-    
-
-
     .container-fluid {
         padding-left: 15px;
         padding-right: 15px;
@@ -37,8 +53,8 @@
 
     .stats-card {
         margin-bottom: 1rem;
-        height: auto !important;
-        min-height: 150px;
+        height: 20vh !important;
+        
     }
 
     .row.mb-4.justify-content-center.align-items-center {
@@ -49,9 +65,10 @@
     .col-md-4 {
         width: 100% !important;
         max-width: 100% !important;
+        height: 20vh !important;
     }
 
-    .card.bg-primary, .card.bg-success, .card.bg-info {
+    .card.bg-primary, .card.bg-success, .card.bg-info, .card.bg-warning, .card.bg-secondary, .card.bg-dark {
         width: 100%;
     }
 
@@ -85,6 +102,12 @@
 
     .modal-content {
         border-radius: 0;
+    }
+
+    /* Burger menu mobile adjustments */
+    .burger-menu {
+        min-width: 180px;
+        right: -10px;
     }
 }
 
@@ -122,39 +145,85 @@
                     <h1 class="mb-4 text-white">Tableau de Bord Employé</h1>
                     <p class="text-white">Bienvenue, {{ app.user.firstName }} {{ app.user.lastName }}</p>
                 </div>
-                <a href="{{ path('app_logout') }}" class="btn btn-outline-light">
-                    <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
-                </a>
+                <!-- Burger Menu Button -->
+                <div class="position-relative">
+                    <button class="btn btn-outline-light burger-menu-btn" id="burgerMenuBtn">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <!-- Burger Menu -->
+                    <div class="burger-menu" id="burgerMenu" style="display: none;">
+                        <button class="btn btn-outline-light btn-sm w-100 mb-2" id="showRevenuesBtn">
+                            <i class="fas fa-euro-sign me-2"></i>Revenus Récents
+                        </button>
+                        <button class="btn btn-outline-light btn-sm w-100 mb-2" id="showCommissionHistoryBtn">
+                            <i class="fas fa-history me-2"></i>Historique des Commissions
+                        </button>
+                        <a href="{{ path('app_logout') }}" class="btn btn-outline-danger btn-sm w-100">
+                            <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
     <div class="row mb-4 justify-content-center align-items-center" style="justify-content: space-evenly;">
-        <div class="col-md-4 d-flex justify-content-center" style="width: 30%; height: 34vh;">
+        <div class="col-md-4 d-flex justify-content-center" style="">
             <div class="card bg-primary text-white stats-card" >
                 <div class="card-body text-center">
-                    <h5 class="card-title">Revenus du Mois</h5>
-                    <h3 class="card-text">{{ totalMonthlyRevenue|number_format(2, ',', ' ') }} €</h3>
-                    <small>{{ monthlyClientCount }} clients ce mois-ci</small>
+                    <h5 class="card-title">Chiffre d'Affaires Semaine</h5>
+                    <h3 class="card-text">{{ totalWeeklyRevenue|number_format(2, ',', ' ') }} €</h3>
+                    <small>{{ weeklyClientCount }} clients cette semaine</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 d-flex justify-content-center" style="width: 30%; height: 34vh;">
+        <div class="col-md-4 d-flex justify-content-center" style="">
             <div class="card bg-success text-white stats-card" >
                 <div class="card-body text-center">
-                    <h5 class="card-title">Commission du Mois</h5>
-                    <h3 class="card-text">{{ pendingCommission|number_format(2, ',', ' ') }} €</h3>
-                    <small>Commission à {{ commissionPercentage }}% (en attente)</small>
+                    <h5 class="card-title">Commission Semaine</h5>
+                    <h3 class="card-text">{{ totalCommission|number_format(2, ',', ' ') }} €</h3>
+                    <small>Commission à {{ commissionPercentage }}%</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 d-flex justify-content-center" style="width: 30%; height: 34vh;">
+        <div class="col-md-4 d-flex justify-content-center" style="">
             <div class="card bg-info text-white stats-card" >
                 <div class="card-body text-center">
-                    <h5 class="card-title">Chiffre d'Affaires HT</h5>
+                    <h5 class="card-title">CA HT Aujourd'hui</h5>
                     <h3 class="card-text" id="totalCaHt">{{ totalCaHt|number_format(2, ',', ' ') }} €</h3>
                     <small>Accumulé aujourd'hui</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Commission Status Cards -->
+    <div class="row mb-4 justify-content-center align-items-center" style="justify-content: space-evenly;">
+        <div class="col-md-4 d-flex justify-content-center" style="">
+            <div class="card bg-warning text-white stats-card" >
+                <div class="card-body text-center">
+                    <h5 class="card-title">Commissions en Attente</h5>
+                    <h3 class="card-text">{{ pendingCommission|number_format(2, ',', ' ') }} €</h3>
+                    <small>À valider par admin</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center" style="">
+            <div class="card bg-secondary text-white stats-card" >
+                <div class="card-body text-center">
+                    <h5 class="card-title">Commissions Validées</h5>
+                    <h3 class="card-text">{{ validatedCommission|number_format(2, ',', ' ') }} €</h3>
+                    <small>En attente de paiement</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center" style="">
+            <div class="card bg-dark text-white stats-card" >
+                <div class="card-body text-center">
+                    <h5 class="card-title">Commissions Payées</h5>
+                    <h3 class="card-text">{{ paidCommission|number_format(2, ',', ' ') }} €</h3>
+                    <small>Déjà payées</small>
                 </div>
             </div>
         </div>
@@ -261,19 +330,49 @@
     </div>
 
     <!-- Commission History -->
-    <div class="row mb-4">
-        <div class="col-md-6">
+    <div class="row mb-4" id="commissionHistorySection" style="display: none;">
+        <div class="col-12">
             <div class="card">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Historique des Commissions</h5>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">Historique des commissions validées</p>
-                    <div class="text-center">
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#commissionHistoryModal">
-                            Voir l'historique
-                        </button>
-                    </div>
+                    {% if commissionHistory is empty %}
+                        <p class="text-muted text-center">Aucune commission validée trouvée.</p>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Semaine</th>
+                                        <th>Revenus HT</th>
+                                        <th>Commission</th>
+                                        <th>Clients</th>
+                                        <th>Validée le</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for commission in commissionHistory %}
+                                        <tr>
+                                            <td>{{ commission.weekStart|date('d/m/Y') }} - {{ commission.weekEnd|date('d/m/Y') }}</td>
+                                            <td>{{ commission.totalRevenueHt|number_format(2, ',', ' ') }} €</td>
+                                            <td>{{ commission.totalCommission|number_format(2, ',', ' ') }} €</td>
+                                            <td>{{ commission.clientsCount }}</td>
+                                            <td>{{ commission.validatedAt|date('d/m/Y H:i') }}</td>
+                                            <td>
+                                                {% if commission.paid %}
+                                                    <span class="badge bg-success">Payée</span>
+                                                {% else %}
+                                                    <span class="badge bg-warning">En attente de paiement</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -327,7 +426,7 @@
     </div>
 
     <!-- Recent Revenues -->
-    <div class="row">
+    <div class="row" id="revenuesSection" style="display: none;">
         <div class="col-12 revenue-section">
             <div class="card">
                 <div class="card-header text-center">
@@ -498,6 +597,49 @@
                                                 <span class="badge bg-warning">En attente de paiement</span>
                                             {% endif %}
                                         </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Package History Modal -->
+<div class="modal fade" id="packageHistoryModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Historique des Forfaits</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {% if recentRevenues is empty %}
+                    <p class="text-muted text-center">Aucun forfait exécuté trouvé.</p>
+                {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Forfait</th>
+                                    <th>Montant HT</th>
+                                    <th>Commission</th>
+                                    <th>Montant TTC</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for revenue in recentRevenues %}
+                                    {% set commissionAmount = (revenue.amountHt * commissionPercentage / 100) %}
+                                    <tr>
+                                        <td>{{ revenue.date|date('d/m/Y') }}</td>
+                                        <td>{{ revenue.package.name }}</td>
+                                        <td>{{ revenue.amountHt|number_format(2, ',', ' ') }} €</td>
+                                        <td>{{ commissionAmount|number_format(2, ',', ' ') }} €</td>
+                                        <td><strong>{{ revenue.amountTtc|number_format(2, ',', ' ') }} €</strong></td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
@@ -699,5 +841,68 @@ function markCommissionPaid(commissionId) {
         });
     }
 }
+
+// Burger Menu Functionality
+document.getElementById('burgerMenuBtn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    const menu = document.getElementById('burgerMenu');
+    const isVisible = menu.style.display !== 'none';
+
+    if (isVisible) {
+        menu.style.display = 'none';
+    } else {
+        menu.style.display = 'block';
+    }
+});
+
+// Close burger menu when clicking outside
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('burgerMenu');
+    const btn = document.getElementById('burgerMenuBtn');
+
+    if (!menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.style.display = 'none';
+    }
+});
+
+// Show/Hide Revenues Section
+document.getElementById('showRevenuesBtn').addEventListener('click', function() {
+    const revenuesSection = document.getElementById('revenuesSection');
+    const isVisible = revenuesSection.style.display !== 'none';
+
+    if (isVisible) {
+        revenuesSection.style.display = 'none';
+        this.innerHTML = '<i class="fas fa-euro-sign me-2"></i>Revenus Récents';
+    } else {
+        revenuesSection.style.display = 'block';
+        this.innerHTML = '<i class="fas fa-times me-2"></i>Masquer Revenus';
+
+        // Scroll to revenues section
+        revenuesSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Close burger menu
+    document.getElementById('burgerMenu').style.display = 'none';
+});
+
+// Show/Hide Commission History Section
+document.getElementById('showCommissionHistoryBtn').addEventListener('click', function() {
+    const commissionHistorySection = document.getElementById('commissionHistorySection');
+    const isVisible = commissionHistorySection.style.display !== 'none';
+
+    if (isVisible) {
+        commissionHistorySection.style.display = 'none';
+        this.innerHTML = '<i class="fas fa-history me-2"></i>Historique des Commissions';
+    } else {
+        commissionHistorySection.style.display = 'block';
+        this.innerHTML = '<i class="fas fa-times me-2"></i>Masquer Historique';
+
+        // Scroll to commission history section
+        commissionHistorySection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Close burger menu
+    document.getElementById('burgerMenu').style.display = 'none';
+});
 </script>
 {% endblock %}

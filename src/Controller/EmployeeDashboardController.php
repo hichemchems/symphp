@@ -38,46 +38,67 @@ final class EmployeeDashboardController extends AbstractController
             ['date' => 'DESC']
         );
 
-        // Calculate total revenue for current month
-        $startOfMonth = new \DateTime('first day of this month');
-        $endOfMonth = new \DateTime('last day of this month');
-        $monthlyRevenues = $revenueRepository->createQueryBuilder('r')
+        // Calculate total revenue for current week
+        $startOfWeek = new \DateTime('monday this week');
+        $endOfWeek = new \DateTime('sunday this week');
+        $weeklyRevenues = $revenueRepository->createQueryBuilder('r')
             ->where('r.employee = :employee')
             ->andWhere('r.date >= :start AND r.date <= :end')
             ->setParameter('employee', $user)
-            ->setParameter('start', $startOfMonth)
-            ->setParameter('end', $endOfMonth)
+            ->setParameter('start', $startOfWeek)
+            ->setParameter('end', $endOfWeek)
             ->getQuery()
             ->getResult();
 
-        $totalMonthlyRevenue = array_reduce($monthlyRevenues, function($sum, $revenue) {
+        $totalWeeklyRevenue = array_reduce($weeklyRevenues, function($sum, $revenue) {
             return $sum + $revenue->getAmountHt(); // Use HT for commission calculation
         }, 0);
 
         // Get commission percentage
         $commissionPercentage = (float) ($user->getCommissionPercentage() ?? 0);
 
-        // Calculate commission for current month (sum of unvalidated weekly commissions for current month only)
-        $unvalidatedCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+        // Calculate commission for current week (unvalidated weekly commission)
+        $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
+        $totalCommission = $currentWeekCommission ? (float)$currentWeekCommission->getTotalCommission() : 0;
+
+        // Calculate pending commission (unvalidated commissions)
+        $pendingCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
             ->andWhere('wc.validated = false')
-            ->andWhere('wc.weekStart >= :startOfMonth')
-            ->andWhere('wc.weekEnd <= :endOfMonth')
             ->setParameter('employee', $user)
-            ->setParameter('startOfMonth', $startOfMonth)
-            ->setParameter('endOfMonth', $endOfMonth)
             ->getQuery()
             ->getResult();
 
-        $totalCommission = array_reduce($unvalidatedCommissions, function($sum, $commission) {
+        $pendingCommission = array_reduce($pendingCommissions, function($sum, $commission) {
             return $sum + (float)$commission->getTotalCommission();
         }, 0);
 
-        // Calculate pending commission (same as totalCommission for now)
-        $pendingCommission = $totalCommission;
+        // Calculate validated and paid commissions
+        $validatedCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+            ->where('wc.employee = :employee')
+            ->andWhere('wc.validated = true')
+            ->andWhere('wc.paid = false')
+            ->setParameter('employee', $user)
+            ->getQuery()
+            ->getResult();
 
-        // Get client count for current month
-        $monthlyClientCount = count($monthlyRevenues);
+        $validatedCommission = array_reduce($validatedCommissions, function($sum, $commission) {
+            return $sum + (float)$commission->getTotalCommission();
+        }, 0);
+
+        $paidCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+            ->where('wc.employee = :employee')
+            ->andWhere('wc.paid = true')
+            ->setParameter('employee', $user)
+            ->getQuery()
+            ->getResult();
+
+        $paidCommission = array_reduce($paidCommissions, function($sum, $commission) {
+            return $sum + (float)$commission->getTotalCommission();
+        }, 0);
+
+        // Get client count for current week
+        $weeklyClientCount = count($weeklyRevenues);
 
         // Calculate today's CA HT
         $today = new \DateTime('today');
@@ -132,12 +153,14 @@ final class EmployeeDashboardController extends AbstractController
         return $this->render('employee_dashboard/index.html.twig', [
             'todayAppointments' => $todayAppointments,
             'recentRevenues' => $recentRevenues,
-            'totalMonthlyRevenue' => $totalMonthlyRevenue,
+            'totalWeeklyRevenue' => $totalWeeklyRevenue,
             'totalCommission' => $totalCommission,
             'pendingCommission' => $pendingCommission,
+            'validatedCommission' => $validatedCommission,
+            'paidCommission' => $paidCommission,
             'commissionPercentage' => $commissionPercentage,
             'totalCaHt' => $totalCaHt,
-            'monthlyClientCount' => $monthlyClientCount,
+            'weeklyClientCount' => $weeklyClientCount,
             'packagesWithCommission' => $packagesWithCommission,
             'weeklyStats' => $weeklyStats,
             'monthlyStats' => $monthlyStats,
