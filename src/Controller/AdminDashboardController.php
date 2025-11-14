@@ -407,14 +407,14 @@ final class AdminDashboardController extends AbstractController
         $tomorrow = new \DateTime('tomorrow');
         $dailyStats = $this->getEmployeeStats($employee, $today, $tomorrow, $entityManager);
 
-        // Calculate weekly stats (current week)
+        // Calculate weekly stats (current week SANS aujourd'hui)
         $weekStart = new \DateTime('monday this week');
-        $weekEnd = new \DateTime('sunday this week');
+        $weekEnd = new \DateTime('yesterday 23:59:59');
         $weeklyStats = $this->getEmployeeStats($employee, $weekStart, $weekEnd, $entityManager);
 
-        // Calculate monthly stats (current month)
+        // Calculate monthly stats (current month SANS la semaine en cours)
         $monthStart = new \DateTime('first day of this month');
-        $monthEnd = new \DateTime('last day of this month');
+        $monthEnd = new \DateTime('last sunday 23:59:59');
         $monthlyStats = $this->getEmployeeStats($employee, $monthStart, $monthEnd, $entityManager);
 
         // No need for weekly stats anymore since we removed the buttons
