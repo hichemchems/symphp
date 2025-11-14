@@ -118,16 +118,39 @@ final class EmployeeDashboardController extends AbstractController
             return $sum + (float)$commission->getTotalCommission();
         }, 0);
 
-        // Calculate pending commission (current week's commission if not validated)
-        $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
-        if ($currentWeekCommission && !$currentWeekCommission->isValidated()) {
-            $pendingCommission = (float)$currentWeekCommission->getTotalCommission();
-            $pendingRevenueHt = (float)$currentWeekCommission->getTotalRevenueHt();
-            $pendingClientsCount = $currentWeekCommission->getClientsCount();
-        } else {
-            $pendingCommission = 0;
-            $pendingRevenueHt = 0;
-            $pendingClientsCount = 0;
+        // Calculate pending commission (all non-validated commissions for current month)
+        $pendingCommission = 0;
+        $pendingRevenueHt = 0;
+        $pendingClientsCount = 0;
+
+        // Get all commissions for current month (validated or not)
+        $allMonthlyCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+            ->where('wc.employee = :employee')
+            ->andWhere('wc.weekStart >= :startOfMonth')
+            ->andWhere('wc.weekEnd <= :endOfMonth')
+            ->setParameter('employee', $user)
+            ->setParameter('startOfMonth', $startOfMonth)
+            ->setParameter('endOfMonth', $endOfMonth)
+            ->orderBy('wc.weekStart', 'ASC')
+            ->getQuery()
+            ->getResult();
+
+        // Remove duplicates by week (keep the latest one)
+        $uniqueAllCommissions = [];
+        foreach ($allMonthlyCommissions as $commission) {
+            $weekKey = $commission->getWeekStart()->format('Y-m-d') . '-' . $commission->getWeekEnd()->format('Y-m-d');
+            if (!isset($uniqueAllCommissions[$weekKey]) || $commission->getId() > $uniqueAllCommissions[$weekKey]->getId()) {
+                $uniqueAllCommissions[$weekKey] = $commission;
+            }
+        }
+
+        // Sum all non-validated commissions
+        foreach ($uniqueAllCommissions as $commission) {
+            if (!$commission->isValidated()) {
+                $pendingCommission += (float)$commission->getTotalCommission();
+                $pendingRevenueHt += (float)$commission->getTotalRevenueHt();
+                $pendingClientsCount += $commission->getClientsCount();
+            }
         }
 
         // No need for additional pending calculation since we use current week commission
@@ -135,9 +158,9 @@ final class EmployeeDashboardController extends AbstractController
         // Get client count for current month
         $monthlyClientCount = count($monthlyRevenues);
 
-        // Calculate today's CA HT (revenus d'aujourd'hui depuis 00:05)
+        // Calculate today's CA HT (revenus d'aujourd'hui depuis 00:00)
         $today = new \DateTime('today');
-        $todayStart = new \DateTime('today 00:05');
+        $todayStart = new \DateTime('today 00:00');
         $tomorrow = new \DateTime('tomorrow');
         $todayRevenues = $revenueRepository->createQueryBuilder('r')
             ->where('r.employee = :employee')
