@@ -123,13 +123,12 @@ final class EmployeeDashboardController extends AbstractController
 
         // Calculate today's CA HT (revenus d'aujourd'hui depuis 00:00)
         $today = new \DateTime('today');
-        $todayStart = new \DateTime('today 00:00');
         $tomorrow = new \DateTime('tomorrow');
         $todayRevenues = $revenueRepository->createQueryBuilder('r')
             ->where('r.employee = :employee')
             ->andWhere('r.date >= :start AND r.date < :end')
             ->setParameter('employee', $user)
-            ->setParameter('start', $todayStart)
+            ->setParameter('start', $today)
             ->setParameter('end', $tomorrow)
             ->getQuery()
             ->getResult();
@@ -138,7 +137,7 @@ final class EmployeeDashboardController extends AbstractController
             return $sum + $revenue->getAmountHt();
         }, 0);
 
-        // Calculate today's commission (based on today's revenues depuis 00:05)
+        // Calculate today's commission (based on today's revenues)
         $todayCommission = $totalCaHt * ($commissionPercentage / 100);
 
         // Calculate clients today
