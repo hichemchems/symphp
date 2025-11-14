@@ -262,11 +262,19 @@ final class EmployeeDashboardController extends AbstractController
 
     private function getCurrentWeekCommission($user, WeeklyCommissionRepository $weeklyCommissionRepository): ?object
     {
-        $now = new \DateTime();
-        $currentMonday = new \DateTime('monday this week');
-        $currentSunday = new \DateTime('sunday this week');
+        $today = new \DateTime('today');
 
-        return $weeklyCommissionRepository->findByEmployeeAndWeek($user, $currentMonday, $currentSunday);
+        // Find the most recent completed week's commission that is not yet validated
+        return $weeklyCommissionRepository->createQueryBuilder('wc')
+            ->where('wc.employee = :employee')
+            ->andWhere('wc.weekEnd <= :today')
+            ->andWhere('wc.validated = false')
+            ->orderBy('wc.weekStart', 'DESC')
+            ->setMaxResults(1)
+            ->setParameter('employee', $user)
+            ->setParameter('today', $today)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     private function getCommissionHistory($user, WeeklyCommissionRepository $weeklyCommissionRepository): array
