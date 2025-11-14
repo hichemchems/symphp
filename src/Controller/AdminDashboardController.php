@@ -429,11 +429,18 @@ final class AdminDashboardController extends AbstractController
             ['date' => 'DESC']
         );
 
-        // Get validation history (validated commissions)
-        $validatedCommissions = $entityManager->getRepository(\App\Entity\WeeklyCommission::class)->findBy(
-            ['employee' => $employee, 'validated' => true],
-            ['validatedAt' => 'DESC']
-        );
+        // Get validation history (validated commissions) - exclude current week
+        $currentWeekStart = new \DateTime('monday this week');
+
+        $validatedCommissions = $entityManager->getRepository(\App\Entity\WeeklyCommission::class)->createQueryBuilder('wc')
+            ->where('wc.employee = :employee')
+            ->andWhere('wc.validated = true')
+            ->andWhere('wc.weekStart < :currentWeekStart')
+            ->setParameter('employee', $employee)
+            ->setParameter('currentWeekStart', $currentWeekStart)
+            ->orderBy('wc.validatedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
 
         return $this->render('admin_dashboard/employee_details.html.twig', [
             'employee' => $employee,

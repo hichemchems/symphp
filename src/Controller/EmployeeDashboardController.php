@@ -79,11 +79,18 @@ final class EmployeeDashboardController extends AbstractController
             }
         }
 
-        // Get pending commissions (weekly commissions not yet validated)
-        $pendingCommissions = $weeklyCommissionRepository->findBy([
-            'employee' => $user,
-            'validated' => false
-        ]);
+        // Get pending commissions (weekly commissions not yet validated AND not current week)
+        $currentWeekStart = new \DateTime('monday this week');
+        $currentWeekEnd = new \DateTime('sunday this week');
+
+        $pendingCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+            ->where('wc.employee = :employee')
+            ->andWhere('wc.validated = false')
+            ->andWhere('wc.weekStart < :currentWeekStart')
+            ->setParameter('employee', $user)
+            ->setParameter('currentWeekStart', $currentWeekStart)
+            ->getQuery()
+            ->getResult();
 
         $pendingCommission = 0;
         $pendingRevenueHt = 0;
@@ -265,12 +272,18 @@ final class EmployeeDashboardController extends AbstractController
 
     private function getCommissionHistory($user, WeeklyCommissionRepository $weeklyCommissionRepository): array
     {
-        // Get all commissions for the last 12 weeks (validated or not, paid or not)
-        $allCommissions = $weeklyCommissionRepository->findBy(
-            ['employee' => $user],
-            ['weekStart' => 'DESC'],
-            12
-        );
+        // Get all commissions for the last 12 weeks (validated or not, paid or not) BUT exclude current week
+        $currentWeekStart = new \DateTime('monday this week');
+
+        $allCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
+            ->where('wc.employee = :employee')
+            ->andWhere('wc.weekStart < :currentWeekStart')
+            ->setParameter('employee', $user)
+            ->setParameter('currentWeekStart', $currentWeekStart)
+            ->orderBy('wc.weekStart', 'DESC')
+            ->setMaxResults(12)
+            ->getQuery()
+            ->getResult();
 
         // Remove duplicates by week (keep the latest one)
         $uniqueCommissions = [];
