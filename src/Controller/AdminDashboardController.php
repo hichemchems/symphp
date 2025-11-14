@@ -441,6 +441,35 @@ final class AdminDashboardController extends AbstractController
         ]);
     }
 
+    #[Route('/admin/validate-commission', name: 'app_admin_validate_commission', methods: ['POST'])]
+    public function validateCommission(Request $request, \App\Repository\WeeklyCommissionRepository $weeklyCommissionRepository, EntityManagerInterface $entityManager): \Symfony\Component\HttpFoundation\JsonResponse
+    {
+        $commissionId = $request->request->get('commission_id');
+        $admin = $this->getUser();
+
+        $commission = $weeklyCommissionRepository->find($commissionId);
+
+        if (!$commission) {
+            return new \Symfony\Component\HttpFoundation\JsonResponse(['success' => false, 'message' => 'Commission non trouvée.']);
+        }
+
+        // Check if commission belongs to an employee created by this admin
+        if ($commission->getEmployee()->getCreatedBy() !== $admin) {
+            return new \Symfony\Component\HttpFoundation\JsonResponse(['success' => false, 'message' => 'Accès non autorisé.']);
+        }
+
+        if ($commission->isValidated()) {
+            return new \Symfony\Component\HttpFoundation\JsonResponse(['success' => false, 'message' => 'Cette commission est déjà validée.']);
+        }
+
+        $commission->setValidated(true);
+        $commission->setValidatedAt(new \DateTime());
+
+        $entityManager->flush();
+
+        return new \Symfony\Component\HttpFoundation\JsonResponse(['success' => true, 'message' => 'Commission validée avec succès.']);
+    }
+
     #[Route('/admin/mark-commission-paid', name: 'app_admin_mark_commission_paid', methods: ['POST'])]
     public function markCommissionPaid(Request $request, \App\Repository\WeeklyCommissionRepository $weeklyCommissionRepository, EntityManagerInterface $entityManager): \Symfony\Component\HttpFoundation\JsonResponse
     {

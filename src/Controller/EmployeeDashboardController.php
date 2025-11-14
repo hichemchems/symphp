@@ -59,64 +59,41 @@ final class EmployeeDashboardController extends AbstractController
         // Get current week commission for validation
         $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
 
-        // Calculate pending commissions from past weeks that are not validated
-        // Since weekly commissions are not created, calculate from revenues
 
-        // Get all weeks in current month except current week
-        $currentWeekStart = new \DateTime('monday this week');
-        $monthStart = new \DateTime('first day of this month');
-        $lastWeekEnd = new \DateTime('last sunday 23:59:59');
+
+        // Get validated and paid commissions from weekly_commissions table
+        $validatedCommissions = $weeklyCommissionRepository->findBy([
+            'employee' => $user,
+            'validated' => true
+        ]);
+
+        $validatedRevenueHt = 0;
+        $totalCommission = 0;
+        $validatedCommission = 0;
+
+        foreach ($validatedCommissions as $commission) {
+            $validatedRevenueHt += $commission->getTotalRevenueHt();
+            $totalCommission += $commission->getTotalCommission();
+            if ($commission->isPaid()) {
+                $validatedCommission += $commission->getTotalCommission();
+            }
+        }
+
+        // Get pending commissions (weekly commissions not yet validated)
+        $pendingCommissions = $weeklyCommissionRepository->findBy([
+            'employee' => $user,
+            'validated' => false
+        ]);
 
         $pendingCommission = 0;
         $pendingRevenueHt = 0;
         $pendingClientsCount = 0;
 
-        // Calculate for each past week in the month
-        $weekIterator = clone $monthStart;
-        while ($weekIterator <= $lastWeekEnd) {
-            $weekStart = clone $weekIterator;
-            // Find Monday of this week
-            if ($weekStart->format('N') != 1) { // 1 = Monday
-                $weekStart->modify('last monday');
-            }
-            $weekEnd = clone $weekStart;
-            $weekEnd->modify('next sunday 23:59:59');
-
-            // Skip current week
-            if ($weekStart >= $currentWeekStart) {
-                break;
-            }
-
-            // Get revenues for this week
-            $weekRevenues = $revenueRepository->createQueryBuilder('r')
-                ->where('r.employee = :employee')
-                ->andWhere('r.date >= :start AND r.date <= :end')
-                ->setParameter('employee', $user)
-                ->setParameter('start', $weekStart)
-                ->setParameter('end', $weekEnd)
-                ->getQuery()
-                ->getResult();
-
-            if (!empty($weekRevenues)) {
-                $weekRevenueHt = array_reduce($weekRevenues, function($sum, $revenue) {
-                    return $sum + $revenue->getAmountHt();
-                }, 0);
-
-                $pendingRevenueHt += $weekRevenueHt;
-                $pendingCommission += $weekRevenueHt * ($commissionPercentage / 100);
-                $pendingClientsCount += count($weekRevenues);
-            }
-
-            // Move to next week
-            $weekIterator->modify('+7 days');
+        foreach ($pendingCommissions as $commission) {
+            $pendingCommission += $commission->getTotalCommission();
+            $pendingRevenueHt += $commission->getTotalRevenueHt();
+            $pendingClientsCount += $commission->getClientsCount();
         }
-
-        // For validated/paid commissions, set to 0 since weekly commissions are not created
-        $validatedRevenueHt = 0;
-        $totalCommission = 0;
-        $validatedCommission = 0;
-
-        // No need for additional pending calculation since we use current week commission
 
         // Get client count for current month
         $monthlyClientCount = count($monthlyRevenues);

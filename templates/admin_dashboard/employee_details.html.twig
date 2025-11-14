@@ -128,11 +128,17 @@
                                                 <td>
                                                     {% if commission.isPaid() %}
                                                         <span class="badge bg-success">Payée</span>
-                                                    {% else %}
-                                                        <span class="badge bg-warning">En attente de paiement</span>
+                                                    {% elseif commission.validated %}
+                                                        <span class="badge bg-info">Validée - En attente de paiement</span>
                                                         <br><br>
                                                         <button class="btn btn-primary btn-sm" onclick="markCommissionPaid({{ commission.id }})">
                                                             <i class="fas fa-money-bill-wave"></i> Confirmer le paiement
+                                                        </button>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">En attente de validation</span>
+                                                        <br><br>
+                                                        <button class="btn btn-success btn-sm" onclick="validateCommission({{ commission.id }})">
+                                                            <i class="fas fa-check"></i> Valider la commission
                                                         </button>
                                                     {% endif %}
                                                 </td>
@@ -156,6 +162,69 @@
 </div>
 
 <script>
+// Toast notification system
+function showToast(message, type = 'success') {
+    const toastContainer = document.getElementById('toastContainer') || createToastContainer();
+
+    const toast = document.createElement('div');
+    toast.className = `toast align-items-center text-white bg-${type} border-0`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+
+    // Remove toast after it's hidden
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container position-fixed top-0 end-0 p-3';
+    container.style.zIndex = '9999';
+    document.body.appendChild(container);
+    return container;
+}
+
+function validateCommission(commissionId) {
+    if (confirm('Êtes-vous sûr de vouloir valider cette commission ? Cette action approuve la demande de l\'employé.')) {
+        fetch('/admin/validate-commission', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'commission_id=' + commissionId
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Commission validée avec succès !', 'success');
+                setTimeout(() => location.reload(), 1500); // Reload after showing toast
+            } else {
+                showToast('Erreur: ' + data.message, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Une erreur est survenue lors de la validation.', 'danger');
+        });
+    }
+}
+
 function markCommissionPaid(commissionId) {
     if (confirm('Êtes-vous sûr de vouloir marquer cette commission comme payée ? Cette action confirme que le paiement a été effectué.')) {
         fetch('/admin/mark-commission-paid', {
@@ -169,15 +238,15 @@ function markCommissionPaid(commissionId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert('Commission marquée comme payée avec succès !');
-                location.reload(); // Reload to update the status
+                showToast('Commission marquée comme payée avec succès !', 'success');
+                setTimeout(() => location.reload(), 1500); // Reload after showing toast
             } else {
-                alert('Erreur: ' + data.message);
+                showToast('Erreur: ' + data.message, 'danger');
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Une erreur est survenue lors de la confirmation du paiement.');
+            showToast('Une erreur est survenue lors de la confirmation du paiement.', 'danger');
         });
     }
 }
