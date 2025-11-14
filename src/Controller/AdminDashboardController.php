@@ -429,15 +429,15 @@ final class AdminDashboardController extends AbstractController
             ['date' => 'DESC']
         );
 
-        // Get validation history (validated commissions) - exclude current week
-        $currentWeekStart = new \DateTime('monday this week');
+        // Get validation history (validated commissions) - only completed weeks
+        $today = new \DateTime('today');
 
         $validatedCommissions = $entityManager->getRepository(\App\Entity\WeeklyCommission::class)->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
             ->andWhere('wc.validated = true')
-            ->andWhere('wc.weekStart < :currentWeekStart')
+            ->andWhere('wc.weekEnd <= :today')  // Only completed weeks
             ->setParameter('employee', $employee)
-            ->setParameter('currentWeekStart', $currentWeekStart)
+            ->setParameter('today', $today)
             ->orderBy('wc.validatedAt', 'DESC')
             ->getQuery()
             ->getResult();

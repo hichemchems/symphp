@@ -79,16 +79,15 @@ final class EmployeeDashboardController extends AbstractController
             }
         }
 
-        // Get pending commissions (weekly commissions not yet validated AND not current week)
-        $currentWeekStart = new \DateTime('monday this week');
-        $currentWeekEnd = new \DateTime('sunday this week');
+        // Get pending commissions (weekly commissions not yet validated AND for completed weeks only)
+        $today = new \DateTime('today');
 
         $pendingCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
             ->andWhere('wc.validated = false')
-            ->andWhere('wc.weekStart < :currentWeekStart')
+            ->andWhere('wc.weekEnd <= :today')  // Only completed weeks
             ->setParameter('employee', $user)
-            ->setParameter('currentWeekStart', $currentWeekStart)
+            ->setParameter('today', $today)
             ->getQuery()
             ->getResult();
 
@@ -273,13 +272,13 @@ final class EmployeeDashboardController extends AbstractController
     private function getCommissionHistory($user, WeeklyCommissionRepository $weeklyCommissionRepository): array
     {
         // Get all commissions for the last 12 weeks (validated or not, paid or not) BUT exclude current week
-        $currentWeekStart = new \DateTime('monday this week');
+        $today = new \DateTime('today');
 
         $allCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
             ->where('wc.employee = :employee')
-            ->andWhere('wc.weekStart < :currentWeekStart')
+            ->andWhere('wc.weekEnd <= :today')  // Only completed weeks
             ->setParameter('employee', $user)
-            ->setParameter('currentWeekStart', $currentWeekStart)
+            ->setParameter('today', $today)
             ->orderBy('wc.weekStart', 'DESC')
             ->setMaxResults(12)
             ->getQuery()
