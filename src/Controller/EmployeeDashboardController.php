@@ -59,99 +59,14 @@ final class EmployeeDashboardController extends AbstractController
         // Get current week commission for validation
         $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
 
-        // Calculate validated revenue HT for the month (sum of totalRevenueHt from validated weekly commissions)
-        $validatedMonthlyCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
-            ->select('wc')
-            ->where('wc.employee = :employee')
-            ->andWhere('wc.validated = true')
-            ->andWhere('wc.weekStart >= :startOfMonth')
-            ->andWhere('wc.weekEnd <= :endOfMonth')
-            ->setParameter('employee', $user)
-            ->setParameter('startOfMonth', $startOfMonth)
-            ->setParameter('endOfMonth', $endOfMonth)
-            ->orderBy('wc.weekStart', 'ASC')
-            ->getQuery()
-            ->getResult();
-
-        // Remove duplicates by week (keep the latest one)
-        $uniqueValidatedCommissions = [];
-        foreach ($validatedMonthlyCommissions as $commission) {
-            $weekKey = $commission->getWeekStart()->format('Y-m-d') . '-' . $commission->getWeekEnd()->format('Y-m-d');
-            if (!isset($uniqueValidatedCommissions[$weekKey]) || $commission->getId() > $uniqueValidatedCommissions[$weekKey]->getId()) {
-                $uniqueValidatedCommissions[$weekKey] = $commission;
-            }
-        }
-
-        $validatedRevenueHt = array_reduce($uniqueValidatedCommissions, function($sum, $commission) {
-            return $sum + (float)$commission->getTotalRevenueHt();
-        }, 0);
-
-        // Calculate total commission for the month (sum of commissions from validated weekly commissions)
-        $totalCommission = array_reduce($uniqueValidatedCommissions, function($sum, $commission) {
-            return $sum + (float)$commission->getTotalCommission();
-        }, 0);
-
-        // Calculate paid commission for the month (sum of paid weekly commissions for current month)
-        // Exclude duplicates
-        $paidCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
-            ->where('wc.employee = :employee')
-            ->andWhere('wc.paid = true')
-            ->andWhere('wc.weekStart >= :startOfMonth')
-            ->andWhere('wc.weekEnd <= :endOfMonth')
-            ->setParameter('employee', $user)
-            ->setParameter('startOfMonth', $startOfMonth)
-            ->setParameter('endOfMonth', $endOfMonth)
-            ->orderBy('wc.weekStart', 'ASC')
-            ->getQuery()
-            ->getResult();
-
-        // Remove duplicates by week (keep the latest one)
-        $uniquePaidCommissions = [];
-        foreach ($paidCommissions as $commission) {
-            $weekKey = $commission->getWeekStart()->format('Y-m-d') . '-' . $commission->getWeekEnd()->format('Y-m-d');
-            if (!isset($uniquePaidCommissions[$weekKey]) || $commission->getId() > $uniquePaidCommissions[$weekKey]->getId()) {
-                $uniquePaidCommissions[$weekKey] = $commission;
-            }
-        }
-
-        $validatedCommission = array_reduce($uniquePaidCommissions, function($sum, $commission) {
-            return $sum + (float)$commission->getTotalCommission();
-        }, 0);
-
-        // Calculate pending commission (all non-validated commissions for current month)
+        // For now, since weekly commissions are not properly created, set these to 0
+        // These will be calculated from actual revenues when the weekly commission system is working
+        $validatedRevenueHt = 0;
+        $totalCommission = 0;
+        $validatedCommission = 0;
         $pendingCommission = 0;
         $pendingRevenueHt = 0;
         $pendingClientsCount = 0;
-
-        // Get all commissions for current month (validated or not)
-        $allMonthlyCommissions = $weeklyCommissionRepository->createQueryBuilder('wc')
-            ->where('wc.employee = :employee')
-            ->andWhere('wc.weekStart >= :startOfMonth')
-            ->andWhere('wc.weekEnd <= :endOfMonth')
-            ->setParameter('employee', $user)
-            ->setParameter('startOfMonth', $startOfMonth)
-            ->setParameter('endOfMonth', $endOfMonth)
-            ->orderBy('wc.weekStart', 'ASC')
-            ->getQuery()
-            ->getResult();
-
-        // Remove duplicates by week (keep the latest one)
-        $uniqueAllCommissions = [];
-        foreach ($allMonthlyCommissions as $commission) {
-            $weekKey = $commission->getWeekStart()->format('Y-m-d') . '-' . $commission->getWeekEnd()->format('Y-m-d');
-            if (!isset($uniqueAllCommissions[$weekKey]) || $commission->getId() > $uniqueAllCommissions[$weekKey]->getId()) {
-                $uniqueAllCommissions[$weekKey] = $commission;
-            }
-        }
-
-        // Sum all non-validated commissions
-        foreach ($uniqueAllCommissions as $commission) {
-            if (!$commission->isValidated()) {
-                $pendingCommission += (float)$commission->getTotalCommission();
-                $pendingRevenueHt += (float)$commission->getTotalRevenueHt();
-                $pendingClientsCount += $commission->getClientsCount();
-            }
-        }
 
         // No need for additional pending calculation since we use current week commission
 
