@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Repository\AppointmentRepository;
 use App\Repository\PackageRepository;
 use App\Repository\RevenueRepository;
-use App\Repository\StatisticsRepository;
 use App\Repository\WeeklyCommissionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 final class EmployeeDashboardController extends AbstractController
 {
     #[Route('/employee/dashboard', name: 'app_employee_dashboard')]
-    public function index(AppointmentRepository $appointmentRepository, RevenueRepository $revenueRepository, PackageRepository $packageRepository, StatisticsRepository $statisticsRepository, WeeklyCommissionRepository $weeklyCommissionRepository): Response
+    public function index(AppointmentRepository $appointmentRepository, RevenueRepository $revenueRepository, PackageRepository $packageRepository, WeeklyCommissionRepository $weeklyCommissionRepository): Response
     {
         /** @var \App\Entity\Employee $user */
         $user = $this->getUser();
@@ -157,6 +156,31 @@ final class EmployeeDashboardController extends AbstractController
         // Calculate clients today
         $todayClientsCount = count($todayRevenues);
 
+        // Calculate current week's CA HT (revenus de la semaine actuelle)
+        $weekStart = new \DateTime('monday this week');
+        $weekEnd = new \DateTime('sunday this week 23:59:59');
+        $weekRevenues = $revenueRepository->createQueryBuilder('r')
+            ->where('r.employee = :employee')
+            ->andWhere('r.date >= :start AND r.date <= :end')
+            ->setParameter('employee', $user)
+            ->setParameter('start', $weekStart)
+            ->setParameter('end', $weekEnd)
+            ->getQuery()
+            ->getResult();
+
+        $weeklyCaHt = array_reduce($weekRevenues, function($sum, $revenue) {
+            return $sum + $revenue->getAmountHt();
+        }, 0);
+
+        // Calculate weekly commission
+        $weeklyCommission = $weeklyCaHt * ($commissionPercentage / 100);
+
+        // Calculate monthly CA HT (revenus du mois actuel)
+        $monthlyCaHt = $totalMonthlyRevenueHt;
+
+        // Calculate monthly commission
+        $monthlyCommission = $monthlyCaHt * ($commissionPercentage / 100);
+
         // Get all available packages
         $packages = $packageRepository->findAll();
 
@@ -172,18 +196,7 @@ final class EmployeeDashboardController extends AbstractController
             ];
         }
 
-        // Get statistics for the employee
-        $weeklyStats = $statisticsRepository->findBy(
-            ['employee' => $user, 'period' => 'weekly'],
-            ['date' => 'DESC'],
-            4 // Last 4 weeks
-        );
-
-        $monthlyStats = $statisticsRepository->findBy(
-            ['employee' => $user, 'period' => 'monthly'],
-            ['date' => 'DESC'],
-            12 // Last 12 months
-        );
+        // No need for statistics anymore since we removed the buttons
 
         // Get commission history (validated commissions)
         $commissionHistory = $this->getCommissionHistory($user, $weeklyCommissionRepository);
@@ -202,10 +215,12 @@ final class EmployeeDashboardController extends AbstractController
             'totalCaHt' => $totalCaHt,
             'todayCommission' => $todayCommission,
             'todayClientsCount' => $todayClientsCount,
+            'weeklyCaHt' => $weeklyCaHt,
+            'weeklyCommission' => $weeklyCommission,
+            'monthlyCaHt' => $monthlyCaHt,
+            'monthlyCommission' => $monthlyCommission,
             'monthlyClientCount' => $monthlyClientCount,
             'packagesWithCommission' => $packagesWithCommission,
-            'weeklyStats' => $weeklyStats,
-            'monthlyStats' => $monthlyStats,
             'currentWeekCommission' => $currentWeekCommission,
             'commissionHistory' => $commissionHistory,
         ]);

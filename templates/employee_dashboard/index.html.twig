@@ -286,7 +286,7 @@
 
     <!-- Statistics Cards -->
     <div class="row mb-4 justify-content-center align-items-center" style="justify-content: space-evenly;">
-        <div class="col-md-4 d-flex justify-content-center" style="width: 30%; height: 34vh;">
+        <div class="col-md-4 d-flex justify-content-center" style="width: 23%; height: 34vh;">
             <div class="card bg-primary text-white stats-card" >
                 <div class="card-body text-center">
                     <h5 class="card-title">CA Aujourd'hui</h5>
@@ -296,30 +296,39 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4 d-flex justify-content-center" style="width: 30%; height: 34vh;">
+        <div class="col-md-4 d-flex justify-content-center" style="width: 23%; height: 34vh;">
+            <div class="card bg-secondary text-white stats-card" >
+                <div class="card-body text-center">
+                    <h5 class="card-title">CA Semaine</h5>
+                    <h3 class="card-text">{{ weeklyCaHt|number_format(2, ',', ' ') }} €</h3>
+                    <small>Commission: {{ weeklyCommission|number_format(2, ',', ' ') }} €</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center" style="width: 23%; height: 34vh;">
+            <div class="card bg-dark text-white stats-card" >
+                <div class="card-body text-center">
+                    <h5 class="card-title">CA Mensuel</h5>
+                    <h3 class="card-text">{{ monthlyCaHt|number_format(2, ',', ' ') }} €</h3>
+                    <small>Commission: {{ monthlyCommission|number_format(2, ',', ' ') }} €</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 d-flex justify-content-center" style="width: 23%; height: 34vh;">
             <div class="card bg-success text-white stats-card" >
                 <div class="card-body text-center">
-                    <h5 class="card-title">Commission Validée du Mois</h5>
+                    <h5 class="card-title">Commission Validée</h5>
                     <h3 class="card-text">{{ totalCommission|number_format(2, ',', ' ') }} €</h3>
                     <small>Sur {{ validatedRevenueHt|number_format(2, ',', ' ') }} € HT validés</small>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 d-flex justify-content-center" style="width: 30%; height: 34vh;">
+        <div class="col-md-4 d-flex justify-content-center" style="width: 23%; height: 34vh;">
             <div class="card bg-warning text-white stats-card" >
                 <div class="card-body text-center">
                     <h5 class="card-title">Commission Payée</h5>
                     <h3 class="card-text">{{ validatedCommission|number_format(2, ',', ' ') }} €</h3>
                     <small>Commission payée ce mois-ci</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 d-flex justify-content-center" style="width: 30%; height: 34vh;">
-            <div class="card bg-info text-white stats-card" >
-                <div class="card-body text-center">
-                    <h5 class="card-title">Reste à Payer</h5>
-                    <h3 class="card-text">{{ (totalCommission - validatedCommission)|number_format(2, ',', ' ') }} €</h3>
-                    <small>{{ pendingClientsCount }} clients depuis dernière validation</small>
                 </div>
             </div>
         </div>
@@ -411,19 +420,7 @@
         </div>
     </div>
 
-    <!-- Statistics Buttons -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <button class="btn btn-info btn-lg w-100" data-bs-toggle="modal" data-bs-target="#weeklyStatsModal">
-                <i class="fas fa-calendar-week"></i> Statistiques Hebdomadaires
-            </button>
-        </div>
-        <div class="col-md-6" style="margin-top: 4%;">
-            <button class="btn btn-success btn-lg w-100" data-bs-toggle="modal" data-bs-target="#monthlyStatsModal">
-                <i class="fas fa-calendar-alt"></i> Statistiques Mensuelles
-            </button>
-        </div>
-    </div>
+
 
     <!-- Commission History - Desktop Only -->
     <div class="row mb-4 d-none d-md-block">
@@ -478,35 +475,7 @@
         </div>
     </div>
 
-    <!-- Commission Non Validée -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Commission Non Validée</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="mb-2">
-                                <strong>Revenus depuis dernière validation: {{ pendingRevenueHt|number_format(2, ',', ' ') }} €</strong>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-2">
-                                <small class="text-muted">{{ pendingClientsCount }} clients depuis dernière validation</small>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <span class="badge bg-warning">Commission: {{ pendingCommission|number_format(2, ',', ' ') }} €</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Weekly Commission Validation -->
     <div class="row mb-4">
@@ -600,93 +569,7 @@
 
 
 
-<!-- Weekly Stats Modal -->
-<div class="modal fade" id="weeklyStatsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Statistiques Hebdomadaires</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                {% if weeklyStats is empty %}
-                    <p>Aucune statistique hebdomadaire disponible.</p>
-                {% else %}
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Semaine</th>
-                                    <th>Revenus HT</th>
-                                    <th>Revenus TTC</th>
-                                    <th>Clients</th>
-                                    <th>Commission</th>
-                                    <th>Profit</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for stat in weeklyStats %}
-                                    <tr>
-                                        <td>Semaine {{ stat.date|date('W') }} ({{ stat.date|date('d/m/Y') }})</td>
-                                        <td>{{ stat.revenueHt }} €</td>
-                                        <td>{{ stat.revenueTtc }} €</td>
-                                        <td>{{ stat.clientsCount }}</td>
-                                        <td>{{ stat.commission }} €</td>
-                                        <td class="{% if stat.profit >= 0 %}text-success{% else %}text-danger{% endif %}">{{ stat.profit }} €</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Monthly Stats Modal -->
-<div class="modal fade" id="monthlyStatsModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Statistiques Mensuelles</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                {% if monthlyStats is empty %}
-                    <p>Aucune statistique mensuelle disponible.</p>
-                {% else %}
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Mois</th>
-                                    <th>Revenus HT</th>
-                                    <th>Revenus TTC</th>
-                                    <th>Clients</th>
-                                    <th>Commission</th>
-                                    <th>Profit</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for stat in monthlyStats %}
-                                    <tr>
-                                        <td>{{ stat.date|date('M Y') }}</td>
-                                        <td>{{ stat.revenueHt }} €</td>
-                                        <td>{{ stat.revenueTtc }} €</td>
-                                        <td>{{ stat.clientsCount }}</td>
-                                        <td>{{ stat.commission }} €</td>
-                                        <td class="{% if stat.profit >= 0 %}text-success{% else %}text-danger{% endif %}">{{ stat.profit }} €</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Mobile Modals -->
 <!-- Revenus Modal -->
