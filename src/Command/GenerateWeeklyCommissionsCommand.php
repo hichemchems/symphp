@@ -2,19 +2,22 @@
 
 namespace App\Command;
 
+use App\Entity\Employee;
 use App\Entity\WeeklyCommission;
 use App\Repository\EmployeeRepository;
 use App\Repository\RevenueRepository;
+use App\Repository\WeeklyCommissionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
     name: 'app:generate-weekly-commissions',
-    description: 'Generates weekly commissions for all employees',
+    description: 'Generate weekly commissions for all employees based on revenues',
 )]
 class GenerateWeeklyCommissionsCommand extends Command
 {
@@ -22,100 +25,127 @@ class GenerateWeeklyCommissionsCommand extends Command
         private EntityManagerInterface $entityManager,
         private EmployeeRepository $employeeRepository,
         private RevenueRepository $revenueRepository,
+        private WeeklyCommissionRepository $weeklyCommissionRepository
     ) {
         parent::__construct();
     }
 
-
+    protected function configure(): void
+    {
+        $this
+            ->addOption('weeks-back', null, InputOption::VALUE_OPTIONAL, 'Number of weeks to go back (default: 4)', 4)
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Force regeneration of existing commissions')
+            ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Show what would be done without making changes');
+    }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
+        $weeksBack = (int) $input->getOption('weeks-back');
+        $force = $input->getOption('force');
+        $dryRun = $input->getOption('dry-run');
 
-        // Get current week (Monday to Sunday)
-        $now = new \DateTime();
-        $currentMonday = new \DateTime('monday this week');
-        $currentSunday = new \DateTime('sunday this week');
+        $io->title('Generating Weekly Commissions');
 
+        if ($dryRun) {
+            $io->warning('DRY RUN MODE - No changes will be made');
+        }
+
+        // Get all employees
         $employees = $this->employeeRepository->findAll();
+        $io->info(sprintf('Found %d employees', count($employees)));
+
+        $totalCreated = 0;
+        $totalUpdated = 0;
 
         foreach ($employees as $employee) {
-            // Check if commission already exists for this week
-            $existingCommission = $this->entityManager->getRepository(WeeklyCommission::class)
-                ->findByEmployeeAndWeek($employee, $currentMonday, $currentSunday);
+            $io->section(sprintf('Processing employee: %s %s', $employee->getFirstName(), $employee->getLastName()));
 
-            if ($existingCommission && $existingCommission->isPaid()) {
-                $io->note(sprintf('Commission already paid for employee %s for week %s to %s',
-                    $employee->getFirstName() . ' ' . $employee->getLastName(),
-                    $currentMonday->format('Y-m-d'),
-                    $currentSunday->format('Y-m-d')
+            // Generate commissions for the last N weeks
+            for ($i = 0; $i < $weeksBack; $i++) {
+                $weekStart = new \DateTime('monday this week');
+                $weekStart->modify("-{$i} weeks");
+
+                $weekEnd = clone $weekStart;
+                $weekEnd->modify('next sunday 23:59:59');
+
+                $io->text(sprintf('Processing week: %s to %s',
+                    $weekStart->format('Y-m-d'),
+                    $weekEnd->format('Y-m-d')
                 ));
-                continue;
-            }
 
-            // Calculate weekly revenue HT and client count
-            $weeklyRevenues = $this->revenueRepository->createQueryBuilder('r')
-                ->where('r.employee = :employee')
-                ->andWhere('r.date >= :start AND r.date <= :end')
-                ->setParameter('employee', $employee)
-                ->setParameter('start', $currentMonday)
-                ->setParameter('end', $currentSunday)
-                ->getQuery()
-                ->getResult();
+                // Check if commission already exists
+                $existingCommission = $this->weeklyCommissionRepository->findByEmployeeAndWeek(
+                    $employee,
+                    $weekStart,
+                    $weekEnd
+                );
 
-            $revenueHt = 0;
-            $clientsCount = count($weeklyRevenues);
+                if ($existingCommission && !$force) {
+                    $io->text('  Commission already exists, skipping (use --force to regenerate)');
+                    continue;
+                }
 
-            foreach ($weeklyRevenues as $revenue) {
-                $revenueHt += (float) $revenue->getAmountHt();
-            }
+                // Calculate revenues for this week
+                $weekRevenues = $this->revenueRepository->createQueryBuilder('r')
+                    ->where('r.employee = :employee')
+                    ->andWhere('r.date >= :start AND r.date <= :end')
+                    ->setParameter('employee', $employee)
+                    ->setParameter('start', $weekStart)
+                    ->setParameter('end', $weekEnd)
+                    ->getQuery()
+                    ->getResult();
 
-            // Calculate commission
-            $commissionPercentage = (float) ($employee->getCommissionPercentage() ?? 0);
-            $totalCommission = $revenueHt * ($commissionPercentage / 100);
+                $totalRevenueHt = array_reduce($weekRevenues, function($sum, $revenue) {
+                    return $sum + $revenue->getAmountHt();
+                }, 0);
 
-            if ($existingCommission) {
-                // Update existing commission only if not paid
-                if (!$existingCommission->isPaid()) {
-                    $existingCommission->setTotalCommission((string) $totalCommission);
-                    $existingCommission->setTotalRevenueHt((string) $revenueHt);
+                $clientsCount = count($weekRevenues);
+                $commissionPercentage = (float) ($employee->getCommissionPercentage() ?? 0);
+                $totalCommission = $totalRevenueHt * ($commissionPercentage / 100);
+
+                if ($existingCommission && $force) {
+                    // Update existing commission
+                    $existingCommission->setTotalRevenueHt($totalRevenueHt);
+                    $existingCommission->setTotalCommission($totalCommission);
                     $existingCommission->setClientsCount($clientsCount);
 
-                    $io->note(sprintf('Updated commission for employee %s: €%s for %d clients',
-                        $employee->getFirstName() . ' ' . $employee->getLastName(),
-                        number_format($totalCommission, 2, ',', ' '),
-                        $clientsCount
-                    ));
-                } else {
-                    $io->note(sprintf('Commission already paid for employee %s, skipping update',
-                        $employee->getFirstName() . ' ' . $employee->getLastName()
-                    ));
+                    if (!$dryRun) {
+                        $this->entityManager->flush();
+                    }
+
+                    $io->text(sprintf('  Updated commission: %.2f € revenue, %.2f € commission, %d clients',
+                        $totalRevenueHt, $totalCommission, $clientsCount));
+                    $totalUpdated++;
+                } elseif (!$existingCommission) {
+                    // Create new commission
+                    $commission = new WeeklyCommission();
+                    $commission->setEmployee($employee);
+                    $commission->setWeekStart($weekStart);
+                    $commission->setWeekEnd($weekEnd);
+                    $commission->setTotalRevenueHt($totalRevenueHt);
+                    $commission->setTotalCommission($totalCommission);
+                    $commission->setClientsCount($clientsCount);
+                    $commission->setValidated(false);
+                    $commission->setPaid(false);
+
+                    if (!$dryRun) {
+                        $this->entityManager->persist($commission);
+                        $this->entityManager->flush();
+                    }
+
+                    $io->text(sprintf('  Created commission: %.2f € revenue, %.2f € commission, %d clients',
+                        $totalRevenueHt, $totalCommission, $clientsCount));
+                    $totalCreated++;
                 }
-            } else {
-                // Create new commission entry if none exists
-                $weeklyCommission = new WeeklyCommission();
-                $weeklyCommission->setEmployee($employee);
-                $weeklyCommission->setTotalCommission((string) $totalCommission);
-                $weeklyCommission->setTotalRevenueHt((string) $revenueHt);
-                $weeklyCommission->setClientsCount($clientsCount);
-                $weeklyCommission->setWeekStart($currentMonday);
-                $weeklyCommission->setWeekEnd($currentSunday);
-                $weeklyCommission->setValidated(false);
-                $weeklyCommission->setPaid(false);
-
-                $this->entityManager->persist($weeklyCommission);
-
-                $io->success(sprintf('Created commission for employee %s: €%s for %d clients',
-                    $employee->getFirstName() . ' ' . $employee->getLastName(),
-                    number_format($totalCommission, 2, ',', ' '),
-                    $clientsCount
-                ));
             }
         }
 
-        $this->entityManager->flush();
+        if (!$dryRun) {
+            $this->entityManager->flush();
+        }
 
-        $io->success(sprintf('Generated weekly commissions for %d employees', count($employees)));
+        $io->success(sprintf('Completed! Created: %d, Updated: %d commissions', $totalCreated, $totalUpdated));
 
         return Command::SUCCESS;
     }
