@@ -59,14 +59,62 @@ final class EmployeeDashboardController extends AbstractController
         // Get current week commission for validation
         $currentWeekCommission = $this->getCurrentWeekCommission($user, $weeklyCommissionRepository);
 
-        // For now, since weekly commissions are not properly created, set these to 0
-        // These will be calculated from actual revenues when the weekly commission system is working
-        $validatedRevenueHt = 0;
-        $totalCommission = 0;
-        $validatedCommission = 0;
+        // Calculate pending commissions from past weeks that are not validated
+        // Since weekly commissions are not created, calculate from revenues
+
+        // Get all weeks in current month except current week
+        $currentWeekStart = new \DateTime('monday this week');
+        $monthStart = new \DateTime('first day of this month');
+        $lastWeekEnd = new \DateTime('last sunday 23:59:59');
+
         $pendingCommission = 0;
         $pendingRevenueHt = 0;
         $pendingClientsCount = 0;
+
+        // Calculate for each past week in the month
+        $weekIterator = clone $monthStart;
+        while ($weekIterator <= $lastWeekEnd) {
+            $weekStart = clone $weekIterator;
+            // Find Monday of this week
+            if ($weekStart->format('N') != 1) { // 1 = Monday
+                $weekStart->modify('last monday');
+            }
+            $weekEnd = clone $weekStart;
+            $weekEnd->modify('next sunday 23:59:59');
+
+            // Skip current week
+            if ($weekStart >= $currentWeekStart) {
+                break;
+            }
+
+            // Get revenues for this week
+            $weekRevenues = $revenueRepository->createQueryBuilder('r')
+                ->where('r.employee = :employee')
+                ->andWhere('r.date >= :start AND r.date <= :end')
+                ->setParameter('employee', $user)
+                ->setParameter('start', $weekStart)
+                ->setParameter('end', $weekEnd)
+                ->getQuery()
+                ->getResult();
+
+            if (!empty($weekRevenues)) {
+                $weekRevenueHt = array_reduce($weekRevenues, function($sum, $revenue) {
+                    return $sum + $revenue->getAmountHt();
+                }, 0);
+
+                $pendingRevenueHt += $weekRevenueHt;
+                $pendingCommission += $weekRevenueHt * ($commissionPercentage / 100);
+                $pendingClientsCount += count($weekRevenues);
+            }
+
+            // Move to next week
+            $weekIterator->modify('+7 days');
+        }
+
+        // For validated/paid commissions, set to 0 since weekly commissions are not created
+        $validatedRevenueHt = 0;
+        $totalCommission = 0;
+        $validatedCommission = 0;
 
         // No need for additional pending calculation since we use current week commission
 
@@ -96,15 +144,15 @@ final class EmployeeDashboardController extends AbstractController
         // Calculate clients today
         $todayClientsCount = count($todayRevenues);
 
-        // Calculate current week's CA HT (revenus de la semaine actuelle)
+        // Calculate current week's CA HT (revenus de la semaine actuelle SANS aujourd'hui)
         $weekStart = new \DateTime('monday this week');
-        $weekEnd = new \DateTime('sunday this week 23:59:59');
+        $yesterday = new \DateTime('yesterday 23:59:59');
         $weekRevenues = $revenueRepository->createQueryBuilder('r')
             ->where('r.employee = :employee')
             ->andWhere('r.date >= :start AND r.date <= :end')
             ->setParameter('employee', $user)
             ->setParameter('start', $weekStart)
-            ->setParameter('end', $weekEnd)
+            ->setParameter('end', $yesterday)
             ->getQuery()
             ->getResult();
 
@@ -115,8 +163,20 @@ final class EmployeeDashboardController extends AbstractController
         // Calculate weekly commission
         $weeklyCommission = $weeklyCaHt * ($commissionPercentage / 100);
 
-        // Calculate monthly CA HT (revenus du mois actuel)
-        $monthlyCaHt = $totalMonthlyRevenueHt;
+        // Calculate monthly CA HT (revenus du mois actuel SANS la semaine en cours)
+        $lastWeekEnd = new \DateTime('last sunday 23:59:59');
+        $monthlyRevenuesWithoutCurrentWeek = $revenueRepository->createQueryBuilder('r')
+            ->where('r.employee = :employee')
+            ->andWhere('r.date >= :start AND r.date <= :end')
+            ->setParameter('employee', $user)
+            ->setParameter('start', $startOfMonth)
+            ->setParameter('end', $lastWeekEnd)
+            ->getQuery()
+            ->getResult();
+
+        $monthlyCaHt = array_reduce($monthlyRevenuesWithoutCurrentWeek, function($sum, $revenue) {
+            return $sum + $revenue->getAmountHt();
+        }, 0);
 
         // Calculate monthly commission
         $monthlyCommission = $monthlyCaHt * ($commissionPercentage / 100);
