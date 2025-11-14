@@ -86,8 +86,10 @@ final class EmployeeDashboardController extends AbstractController
             return $sum + (float)$commission->getTotalRevenueHt();
         }, 0);
 
-        // Calculate total commission for the month (based on ALL revenues, not just validated)
-        $totalCommission = $totalMonthlyRevenueHt * ($commissionPercentage / 100);
+        // Calculate total commission for the month (sum of commissions from validated weekly commissions)
+        $totalCommission = array_reduce($uniqueValidatedCommissions, function($sum, $commission) {
+            return $sum + (float)$commission->getTotalCommission();
+        }, 0);
 
         // Calculate paid commission for the month (sum of paid weekly commissions for current month)
         // Exclude duplicates
