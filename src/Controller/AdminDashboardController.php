@@ -94,16 +94,20 @@ final class AdminDashboardController extends AbstractController
             $this->addFlash('success', 'Charge ajoutée avec succès !');
             return $this->redirectToRoute('app_admin_dashboard');
         }
-        // Get only employees created by this admin
-        $employees = $employeeRepository->findBy(['createdBy' => $this->getUser()]);
+        // Get only employees created by this admin OR employees with no creator (orphaned employees)
+        $employees = $employeeRepository->createQueryBuilder('e')
+            ->where('e.createdBy = :admin OR e.createdBy IS NULL')
+            ->setParameter('admin', $this->getUser())
+            ->getQuery()
+            ->getResult();
 
-        // Calculate global statistics for today (only from employees created by this admin)
+        // Calculate global statistics for today (only from employees created by this admin OR orphaned employees)
         $today = new \DateTime('today');
         $tomorrow = new \DateTime('tomorrow');
         $todayRevenues = $revenueRepository->createQueryBuilder('r')
             ->join('r.employee', 'e')
             ->where('r.date >= :start AND r.date < :end')
-            ->andWhere('e.createdBy = :admin')
+            ->andWhere('e.createdBy = :admin OR e.createdBy IS NULL')
             ->setParameter('start', $today)
             ->setParameter('end', $tomorrow)
             ->setParameter('admin', $this->getUser())
@@ -117,12 +121,12 @@ final class AdminDashboardController extends AbstractController
             $todayRevenueTtc += (float) $revenue->getAmountTtc();
         }
 
-        // Calculate global statistics for current week (only from employees created by this admin)
+        // Calculate global statistics for current week (only from employees created by this admin OR orphaned employees)
         $weekStart = new \DateTime('monday this week');
         $weekRevenues = $revenueRepository->createQueryBuilder('r')
             ->join('r.employee', 'e')
             ->where('r.date >= :start')
-            ->andWhere('e.createdBy = :admin')
+            ->andWhere('e.createdBy = :admin OR e.createdBy IS NULL')
             ->setParameter('start', $weekStart)
             ->setParameter('admin', $this->getUser())
             ->getQuery()
@@ -135,12 +139,12 @@ final class AdminDashboardController extends AbstractController
             $weekRevenueTtc += (float) $revenue->getAmountTtc();
         }
 
-        // Calculate global statistics for current month (only from employees created by this admin)
+        // Calculate global statistics for current month (only from employees created by this admin OR orphaned employees)
         $monthStart = new \DateTime('first day of this month');
         $monthRevenues = $revenueRepository->createQueryBuilder('r')
             ->join('r.employee', 'e')
             ->where('r.date >= :start')
-            ->andWhere('e.createdBy = :admin')
+            ->andWhere('e.createdBy = :admin OR e.createdBy IS NULL')
             ->setParameter('start', $monthStart)
             ->setParameter('admin', $this->getUser())
             ->getQuery()
